@@ -50,7 +50,8 @@
 		"GetAllBlockActions": "main",
 		"BeforePageDisplay": "main",
 		"ResourceLoaderGetConfigVars": "main",
-		"ContributionsToolLinks": "main"
+		"ContributionsToolLinks": "main",
+		"SidebarBeforeOutput": "main"
 	},
 	"AvailableRights": [
 		"comments",
@@ -273,7 +274,8 @@
 		}
 	},
 	"SpecialPages": {
-		"Comments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialComments"
+		"Comments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialComments",
+		"CommentControl": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialCommentControl"
 	},
 	"ExtensionMessagesFiles": {
 		"CommentsAlias": "src/Yappin.i18n.alias.php"

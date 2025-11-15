@@ -4,6 +4,8 @@ namespace MediaWiki\Extension\Yappin;
 
 use ExtensionRegistry;
 use MediaWiki\Config\Config;
+use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
+use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\Permissions\Authority;

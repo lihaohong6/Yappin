@@ -59,5 +59,14 @@
 	"yappin-parent-link-inner": "comment",
 	"yappin-user-filter-banner": "Displaying comments by $1",
 	"yappin-contributions": "comments",
-	"yappin-view-replies": "View replies ($1)"
+	"yappin-view-replies": "View replies ($1)",
+	"yappin-commentcontrol-special-title": "Change page's comment status",
+	"yappin-commentcontrol-current-status": "Current status: ",
+	"yappin-commentcontrol-new-status-label": "New status: ",
+	"yappin-commentcontrol-success": "Page [[$1]]'s comment control status changed to $2.",
+	"yappin-commentcontrol-status-enabled": "enabled",
+	"yappin-commentcontrol-status-read-only": "read-only",
+	"yappin-commentcontrol-status-disabled": "disabled",
+	"yappin-commentcontrol-submit": "Change control status",
+	"sidebar-yappin-commentcontrol": "Control comments"
 }
