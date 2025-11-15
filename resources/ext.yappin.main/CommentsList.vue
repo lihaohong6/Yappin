@@ -149,6 +149,14 @@ module.exports = exports = defineComponent( {
 				api.get( path )
 					.done( ( res ) => {
 						const comments = [];
+						if ( !res.comments ) {
+							mw.notify(res, {
+								type: "error",
+								autoHide: true,
+								autoHideSeconds: 10
+							} );
+							return;
+						}
 						for ( const data of res.comments ) {
 							comments.push( new Comment( data ) );
 						}
