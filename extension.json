@@ -59,6 +59,16 @@
 		"comments-upload"
 	],
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
+	"LogTypes": [ "comments" ],
+	"LogNames": {
+		"comments": "log-comments-name"
+	},
+	"LogHeaders": {
+		"comments": "log-comments-header"
+	},
+	"LogActionsHandlers": {
+		"comments/*": "MediaWiki\\Extension\\Yappin\\CommentsLogFormatter"
+	},
 	"HookHandlers": {
 		"main": {
 			"class": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers",

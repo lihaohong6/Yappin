@@ -4,6 +4,7 @@ namespace MediaWiki\Extension\Yappin\Specials;
 
 use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
 use MediaWiki\HTMLForm\HTMLForm;
+use MediaWiki\Logging\ManualLogEntry;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
@@ -68,7 +69,7 @@ class SpecialCommentControl extends SpecialPage {
 
 	private function showPageControlForm( Title $title ) {
 		$out = $this->getOutput();
-		$out->setPageTitleMsg( wfMessage('yappin-commentcontrol-special-title') );
+		$out->setPageTitleMsg( wfMessage( 'yappin-commentcontrol-special-title' ) );
 		$out->addBacklinkSubtitle( $title );
 
 		$currentStatus = $this->getControlStatus( $title );
@@ -167,7 +168,7 @@ class SpecialCommentControl extends SpecialPage {
 		return CommentControlStatus::from( $res['cc_restriction'] );
 	}
 
-	private static function setControlStatus( Title $title, CommentControlStatus $status ): void {
+	private function setControlStatus( Title $title, CommentControlStatus $status ): void {
 		$id = $title->getArticleID();
 		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
 		if ( $status === CommentControlStatus::ENABLED ) {
@@ -188,6 +189,14 @@ class SpecialCommentControl extends SpecialPage {
 				->caller( __METHOD__ )
 				->execute();
 		}
+		$logEntry = new ManualLogEntry( 'comments', 'control' );
+		$logEntry->setPerformer( $this->getUser() );
+		$logEntry->setTarget( $title );
+		$logEntry->setParameters( [
+			'4::number' => commentControlStatusToKey( $status ),
+		] );
+		$logId = $logEntry->insert( $dbw );
+		$logEntry->publish( $logId );
 	}
 
 	protected function getGroupName(): string {

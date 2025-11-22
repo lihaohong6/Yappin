@@ -68,5 +68,8 @@
 	"yappin-commentcontrol-status-read-only": "read-only",
 	"yappin-commentcontrol-status-disabled": "disabled",
 	"yappin-commentcontrol-submit": "Change control status",
-	"sidebar-yappin-commentcontrol": "Control comments"
+	"sidebar-yappin-commentcontrol": "Control comments",
+	"log-comments-name": "Comment log",
+	"log-description-comments": "Tracks events related to comments on the wiki",
+	"logentry-comments-control": "$1 {{GENDER:$2|changed comment control status}} of page $3 to $4"
 }
