@@ -77,8 +77,9 @@
 					></comment-item>
 				</div>
 				<new-comment-input
-					v-if="!parentId"
-					:parent-id="comment.id"
+					:parent-id="parentId || comment.id"
+					:ping="parentId ? comment.user.name : ''"
+					:ping-anon="comment.user.anon"
 					:is-writing-comment="isWritingReply"
 					:on-cancel="() => isWritingReply = false"
 				></new-comment-input>
@@ -86,7 +87,7 @@
 		</div>
 		<div class="comment-footer">
 			<button
-				v-if="!parentId && !isWritingReply && !comment.deleted && !comment.parent"
+				v-if="!isWritingReply && !comment.deleted"
 				class="comment-reply-button"
 				@click="isWritingReply = true"
 			>

@@ -8,7 +8,9 @@
 		</div>
 		<div class="comment-input-actions">
 			<cdx-button :disabled="store.globalCooldown" action="progressive" weight="primary" @click="submitComment">
-				<span v-if="store.globalCooldown">{{ $i18n( 'yappin-submit-cooldown', store.globalCooldown ).text() }}</span>
+				<span v-if="store.globalCooldown">
+					{{ $i18n( 'yappin-submit-cooldown', store.globalCooldown ).text() }}
+				</span>
 				<span v-else-if="isTopLevel">{{ $i18n( 'yappin-post-submit-top-level' ).text() }}</span>
 				<span v-else>{{ $i18n( 'yappin-post-submit-child' ).text() }}</span>
 			</cdx-button>
@@ -42,6 +44,16 @@ module.exports = exports = defineComponent( {
 			type: Boolean,
 			default: false,
 			required: true
+		},
+		ping: {
+			type: String,
+			default: "",
+			required: false
+		},
+		pingAnon: {
+			type: Boolean,
+			default: false,
+			required: false
 		},
 		onCancel: {
 			type: Function,
@@ -86,7 +98,7 @@ module.exports = exports = defineComponent( {
 				if ( this.$props.parentId ) {
 					// Reply to an existing comment, add it to the end of the children list
 					const ix = this.$data.store.comments.findIndex( ( c ) => c.id === this.$props.parentId );
-					this.$data.store.comments[ix].children.push( newComment );
+					this.$data.store.comments[ ix ].children.push( newComment );
 				} else {
 					// Top-level comment, just throw it to the top of the comments list
 					this.$data.store.comments.unshift( newComment );
@@ -123,13 +135,28 @@ module.exports = exports = defineComponent( {
 		isWritingComment( val ) {
 			const $input = $( this.$refs.input );
 			if ( val === true && this.$data.ve === null && mw.commentsExt.ve.Editor.static.isSupported() ) {
+				// If a user needs to be explicitly pinged due to the lack of nested replies, fill in the ping
+				// as a link in VE
+				const ping = this.$props.ping;
+				if ( ping !== "" ) {
+					let pingHtml;
+					if ( this.$props.pingAnon ) {
+						pingHtml = `<p>@${ping}:&nbsp;</p>`
+					} else {
+						const title = new mw.Title( ping, 2 );
+						pingHtml = `<p><a href="${title.getUrl()}" title="${title.getPrefixedText()}" rel="mw:WikiLink">@${ping}</a>:&nbsp;</p>`;
+					}
+					$input.val( pingHtml );
+				}
 				// Create the VE instance for this editor
 				this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
+				// FIXME: the cursor is at the beginning of VE instead of end
+				// this.$data.ve.moveCursorToEnd();
 			} else if ( val === true ) {
 				if ( this.$data.ve ) {
 					this.$data.ve.target.getSurface().getView().focus();
 				} else {
-					setTimeout(() => $input.focus(), 0);
+					setTimeout( () => $input.focus(), 0 );
 				}
 			} else {
 				if ( this.$data.ve ) {
@@ -137,7 +164,7 @@ module.exports = exports = defineComponent( {
 					this.$data.ve.target.destroy();
 					this.$data.ve = null;
 				} else {
-					$input.val('');
+					$input.val( '' );
 				}
 			}
 		}
