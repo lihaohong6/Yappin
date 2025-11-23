@@ -1,6 +1,9 @@
 <template>
 	<div class="ext-comments-comment-item" :class="{ 'is-highlighted': parseInt( store.singleComment ) === comment.id }" :data-comment-id="comment.id" :data-deleted="comment.deleted !== null">
 		<div>
+			<div v-if="comment.user.avatar" class="comment-avatar">
+				<img :src="comment.user.avatar" :alt="comment.user.name" loading="lazy" />
+			</div>
 			<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
 			<div class="comment-body">
 				<div class="comment-header">

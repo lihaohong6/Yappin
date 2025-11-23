@@ -2,19 +2,20 @@
 
 namespace MediaWiki\Extension\Yappin\Models;
 
-use ExtensionRegistry;
 use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Extension\AbuseFilter\AbuseFilterServices;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityValue;
-use ParserOptions;
+use MediaWiki\Parser\ParserOptions;
+use Telepedia\UserProfileV2\Avatar\UserProfileV2Avatar;
 use Wikimedia\Rdbms\IDatabase;
-use WikitextContent;
+use MediaWiki\Content\WikitextContent;
 
 class Comment {
 	public const TABLE_NAME = 'com_comment';
@@ -513,13 +514,22 @@ class Comment {
 	 * @return array
 	 */
 	public function toArray(): array {
+		$showAvatars = $this->config->get( 'CommentsShowUPV2Avatars' );
+		$avatarUrl = null;
+		if ( $showAvatars && ExtensionRegistry::getInstance()->isLoaded( 'UserProfileV2' ) ) {
+			$userId = $this->getActor()->getId();
+			$avatar = new UserProfileV2Avatar( $userId );
+			$avatarUrl = $avatar->getAvatarUrl( ["raw" => true] ) ?? null;
+		}
+
 		return [
 			'id' => $this->mId,
 			'created' => wfTimestamp( TS_ISO_8601, $this->mCreatedTimestamp ),
 			'edited' => wfTimestampOrNull( TS_ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
 				'name' => $this->getActor()->getName(),
-				'anon' => !$this->getActor()->isRegistered()
+				'anon' => !$this->getActor()->isRegistered(),
+				'avatar' => $avatarUrl,
 			],
 			'parent' => $this->mParentId,
 			'deleted' => $this->getDeletedActor() ? [

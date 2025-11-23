@@ -28,6 +28,9 @@
 		"ShowOnMainPage": {
 			"value": false
 		},
+		"ShowUPV2Avatars": {
+			"value": false
+		},
 		"ResultsPerPage": {
 			"value": 50
 		},

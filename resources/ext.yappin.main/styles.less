@@ -1,3 +1,5 @@
+@import 'mediawiki.skin.variables.less';
+
 :root {
 	--comments-primary-background: var(--background-color-base, #ffffff);
 	--comments-secondary-background: var(--background-color-neutral, #f7f7f7);
@@ -171,6 +173,13 @@
 				color: var(--color-progressive--hover, #05798e);
 			}
 		}
+	}
+
+	.comment-avatar img {
+		width: 40px;
+		height: auto;
+		border-radius: 50%;
+		border: 1px solid @border-color-base;
 	}
 
 	.comment-rating {
