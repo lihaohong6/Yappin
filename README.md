@@ -1,8 +1,18 @@
 # Yappin
 MediaWiki extension which allows users to leave comments on a page, which is displayed underneath the page content.
 
+Forked from https://github.com/weirdgloop/mediawiki-extensions-Comments. Changes:
+- Send notifications for replies, mentions, and comments made on user pages.
+- Allow nested replies through mentions.
+- Display profile pictures from UserProfileV2.
+- Import comments from other services.
+- Export all comments to a json file.
+- Disable commenting on a per-page basis.
+- Accommodate dark mode.
+- PHP 8.4 compatibility.
+
 ## Dependencies
-Requires MediaWiki 1.41+ and the [VisualEditor](https://www.mediawiki.org/wiki/Extension:VisualEditor) extension installed.
+Requires MediaWiki 1.44+ and the [VisualEditor](https://www.mediawiki.org/wiki/Extension:VisualEditor) extension installed.
 
 ## Installing
 1. Enable the extension using `wfLoadExtension( 'Yappin' );`
