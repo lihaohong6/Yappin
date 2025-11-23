@@ -3,16 +3,28 @@
 namespace MediaWiki\Extension\Yappin\Api;
 
 use MediaWiki\Config\Config;
+use MediaWiki\Extension\Notifications\Model\Event;
 use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
 use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
+use MediaWiki\MediaWikiServices;
+use MediaWiki\Notification\NotificationService;
+use MediaWiki\Notification\RecipientSet;
+use MediaWiki\Notification\Types\WikiNotification;
+use MediaWiki\Parser\ParserOptions;
+use MediaWiki\Parser\ParserOutputLinkTypes;
+use MediaWiki\Permissions\Authority;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
+use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
+use MediaWiki\User\UserIdentity;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
+use Wikimedia\Parsoid\Core\LinkTarget as ParsoidLinkTarget;
 
 class ApiPostComment extends SimpleHandler {
 	/**
@@ -117,6 +129,8 @@ class ApiPostComment extends SimpleHandler {
 
 		$comment->save();
 
+		$this->notifyComments( $auth->getUser(), $parent, $page, $comment );
+
 		return $this->getResponseFactory()->createJson( [
 			'comment' => $comment->toArray()
 		] );
@@ -148,5 +162,98 @@ class ApiPostComment extends SimpleHandler {
 				ParamValidator::PARAM_REQUIRED => false
 			]
 		];
+	}
+
+	/**
+	 * @param Authority $auth
+	 * @param Comment|null $parent
+	 * @param Title $page
+	 * @param Comment $comment
+	 * @return void
+	 */
+	public function notifyComments(
+		UserIdentity $notifier,
+		?Comment $parent,
+		Title $page,
+		Comment $comment
+	): void {
+		$services = MediaWikiServices::getInstance();
+		$userFactory = $services->getUserFactory();
+		$recipients = [];
+
+		// 1. Direct reply notification
+		if ( $parent ) {
+			$parentActor = $parent->getActor();
+			if ( $parentActor->getId() !== 0 ) {
+				$parentUser = $userFactory->newFromActorId( $parentActor->getId() );
+				if ( $parentUser->getId() !== $notifier->getId() ) {
+					$recipients[$parentUser->getId()] = [
+						'type' => 'yappin-reply'
+					];
+				}
+			}
+		}
+
+		// 2. User page notification
+		// When a comment is made on a user page, the owner is always notified.
+		if ( $page->inNamespace( NS_USER ) ) {
+			$pageOwner = $userFactory->newFromName( $page->getText() );
+			if (
+				$pageOwner &&
+				$pageOwner->isRegistered() &&
+				!$pageOwner->equals( $notifier ) &&
+				!isset( $recipients[$pageOwner->getId()] )
+			) {
+				$recipients[$pageOwner->getId()] = [
+					'type' => 'yappin-user-page'
+				];
+			}
+		}
+
+		// 3. Mention notification
+		// Parse wikitext to find links. Note that nested replies also go here.
+		$wikitext = $comment->getWikitext();
+		$parser = $services->getParser();
+		$parserOptions = ParserOptions::newFromUser( $notifier );
+		$output = $parser->parse( $wikitext, $page, $parserOptions );
+		$links = $output->getLinkList( ParserOutputLinkTypes::LOCAL );
+
+		// "Limit of at most 10 users"
+		$linksFound = 0;
+		foreach ( $links as $linkObject ) {
+			// Prevent ping spam
+			if ( $linksFound >= 10 ) {
+				break;
+			}
+			/** @var ParsoidLinkTarget $linkTarget */
+			$linkTarget = $linkObject['link'];
+			if ( $linkTarget->getNamespace() !== NS_USER ) {
+				continue;
+			}
+			$mentionedUser = $userFactory->newFromName( $linkTarget->getText() );
+			if ( $mentionedUser && $mentionedUser->isRegistered() && $mentionedUser->getId() !== $notifier->getId() ) {
+				$userId = $mentionedUser->getId();
+				if ( isset( $recipients[$userId] ) ) {
+					continue;
+				}
+				$recipients[$userId] = [
+					'type' => 'yappin-mention',
+				];
+				$linksFound++;
+			}
+		}
+
+		$notifications = MediaWikiServices::getInstance()->getNotificationService();
+		foreach ( $recipients as $recipientId => $info ) {
+			$info['title'] = $page;
+			$info['agent'] = $notifier;
+			$notifications->notify(
+				new WikiNotification( $info['type'], $page, $notifier, [
+					'comment_id' => $comment->getId(),
+					'wikitext' => $wikitext,
+				] ),
+				new RecipientSet( $userFactory->newFromId( $recipientId ) ),
+			);
+		}
 	}
 }

@@ -77,5 +77,11 @@
 	"logentry-comments-import": "$1 {{GENDER:$2|imported}} $4 comments on page $3.",
 	"exportcomments": "Export comments",
 	"yappin-export-include-deleted": "Include deleted comments",
-	"yappin-export-submit": "Export"
+	"yappin-export-submit": "Export",
+	"notification-header-yappin-user-page": "[[User:$1]] made a comment on your user page [[$2]]",
+	"notification-header-yappin-reply": "[[User:$1]] replied to your comment on [[$2]]",
+	"notification-header-yappin-mention": "[[User:$1]] mentioned you in a comment on [[$2]]",
+	"notification-body-yappin": "$1",
+	"echo-category-title-yappin": "Comment",
+	"echo-pref-tooltip-yappin": "Comment replies and mentions"
 }

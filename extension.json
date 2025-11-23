@@ -54,7 +54,8 @@
 		"BeforePageDisplay": "main",
 		"ResourceLoaderGetConfigVars": "main",
 		"ContributionsToolLinks": "main",
-		"SidebarBeforeOutput": "main"
+		"SidebarBeforeOutput": "main",
+		"BeforeCreateEchoEvent": "echo"
 	},
 	"AvailableRights": [
 		"comments",
@@ -81,6 +82,9 @@
 		},
 		"schema": {
 			"class": "MediaWiki\\Extension\\Yappin\\Hooks\\SchemaHookHandlers"
+		},
+		"echo": {
+			"class": "MediaWiki\\Extension\\Yappin\\Hooks\\NotificationHookHandlers"
 		}
 	},
 	"RestRoutes": [
