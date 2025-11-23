@@ -112,7 +112,8 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
-		$ownComment = $comment->getActor()->equals( $this->getAuthority()->getUser() );
+		// Compare id since the username can happen to be the same due to an import
+		$ownComment = $comment->getActor()->getId() === $this->getAuthority()->getUser()->getId();
 		$isMod = Utils::canUserModerate( $this->getAuthority() );
 
 		if ( $ownComment && $delete === true ) {
