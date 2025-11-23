@@ -1,16 +1,16 @@
 @import 'mediawiki.skin.variables.less';
 
 :root {
-	--comments-primary-background: var(--background-color-base, #ffffff);
-	--comments-secondary-background: var(--background-color-neutral, #f7f7f7);
-	--comments-negative: var(--color-error, #6c1515);
-	--comments-positive: var(--color-success, #156c17);
-	--comments-border: var(--border-color-base, #eae9e9);
-	--comments-highlight-background: var(--background-color-progressive-subtle, #fffce8);
-	--comments-highlight-border: var(--border-color-progressive, #eee6c5);
-	--comments-deleted-background: var(--background-color-error-subtle, #ffe8e8);
-	--comments-deleted-border: var(--border-color-destructive, #eec5c5);
-	--comments-muted: var(--color-subtle, #757575);
+	--comments-primary-background: @background-color-base;
+	--comments-secondary-background: @background-color-neutral;
+	--comments-negative: @color-error;
+	--comments-positive: @color-success;
+	--comments-border: @border-color-base;
+	--comments-highlight-background: @background-color-progressive-subtle;
+	--comments-highlight-border: @border-color-progressive;
+	--comments-deleted-background: @background-color-error-subtle;
+	--comments-deleted-border: @border-color-destructive;
+	--comments-muted: @color-subtle;
 }
 
 #ext-comments-container {
@@ -162,15 +162,15 @@
 			}
 
 			&.comment-action-edit:hover .cdx-icon {
-				color: var(--color-progressive--hover, #05408e);
+				color: @color-progressive--hover;
 			}
 
 			&.comment-action-delete:hover .cdx-icon {
-				color: var(--color-destructive--hover, #8e0505);
+				color: @color-destructive--hover;
 			}
 
 			&.comment-action-link:hover .cdx-icon {
-				color: var(--color-progressive--hover, #05798e);
+				color: @color-progressive--hover;
 			}
 		}
 	}
