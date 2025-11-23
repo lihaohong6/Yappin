@@ -5,9 +5,12 @@
 			<div class="comment-body">
 				<div class="comment-header">
 					<div class="comment-author-wrapper">
-						<a class="comment-author" :href="userPageLink">
-							{{ comment.user.anon ? $i18n( 'yappin-anon' ) : comment.user.name }}
+						<a v-if="!comment.user.anon" class="comment-author" :href="userPageLink">
+							{{ comment.user.name }}
 						</a>
+						<div v-else class="comment-author">
+							{{ comment.user.name }}
+						</div>
 						<div class="comment-info">
 							<span
 								class="comment-rating"
@@ -153,6 +156,9 @@ module.exports = exports = defineComponent( {
 			return moment( this.comment.edited ).fromNow();
 		},
 		userPageLink() {
+			if ( this.comment.user.anon ) {
+				return "";
+			}
 			const title = new mw.Title( this.comment.user.name, 2 ); // 2 = User
 			return title.getUrl();
 		},

@@ -11,6 +11,7 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
+use MediaWiki\User\UserIdentityValue;
 use ParserOptions;
 use Wikimedia\Rdbms\IDatabase;
 use WikitextContent;
@@ -124,36 +125,20 @@ class Comment {
 	/**
 	 * The actor who posted the comment
 	 *
-	 * @return UserIdentity|null
+	 * @return UserIdentity
 	 */
-	public function getActor(): ?UserIdentity {
+	public function getActor(): UserIdentity {
 		if ( $this->mActor ) {
 			return $this->mActor;
 		}
 
 		if ( $this->mActorId === 0 ) {
-			return null;
+			$this->mActor = new UserIdentityValue( $this->mActorId, $this->mUsername );
+		} else {
+			$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
 		}
-
-		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
 
 		return $this->mActor;
-	}
-
-	public function getCommenterName(): string {
-		$actor = $this->getActor();
-		if ( $actor ) {
-			return $actor->getName();
-		}
-		return $this->mUsername;
-	}
-
-	public function commenterIsAnon(): bool {
-		$actor = $this->getActor();
-		if ( $actor ) {
-			return !$actor->isRegistered();
-		}
-		return preg_match( '/^\d/', $this->mUsername ) === 1;
 	}
 
 	/**
@@ -533,9 +518,8 @@ class Comment {
 			'created' => wfTimestamp( TS_ISO_8601, $this->mCreatedTimestamp ),
 			'edited' => wfTimestampOrNull( TS_ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
-				// FIXME: just get the actor as before. Manually construct a fake actor object if the actor does not exist.
-				'name' => $this->getCommenterName(),
-				'anon' => $this->commenterIsAnon()
+				'name' => $this->getActor()->getName(),
+				'anon' => !$this->getActor()->isRegistered()
 			],
 			'parent' => $this->mParentId,
 			'deleted' => $this->getDeletedActor() ? [
