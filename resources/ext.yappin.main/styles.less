@@ -13,6 +13,24 @@
 	--comments-muted: @color-subtle;
 }
 
+/*
+When Yappin loads VE via ResourceLoader, mediawiki.skinning.interface gets loaded as well. It duplicates a previous
+request, which is fine, but it also overrides the version that uses Codex design tokens because they have the same
+specificity and this one is loaded later.
+
+This is a band-aid to fix the worst visual anomalies caused by this issue.
+*/
+:root {
+	a:where(:not([role="button"])) {
+		color: @color-progressive;
+	}
+
+	a:where(:not([role="button"])):visited {
+		color: @color-visited;
+	}
+}
+
+
 #ext-comments-container {
 	button {
 		cursor: pointer;
@@ -38,7 +56,7 @@
 		display: flex;
 		align-items: center;
 		gap: 1em;
-		margin-top: 0.2em;
+		margin-top: 0.5em;
 		margin-left: 0.5em;
 
 		button, a {
@@ -79,7 +97,7 @@
 	.ext-comments-comment-item {
 		display: flex;
 		flex-direction: column;
-		padding: 0.5em 0.25em;
+		padding: 0.5em;
 		border: 1px solid var(--comments-border);
 		box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
 
@@ -105,7 +123,7 @@
 		.comment-author-wrapper {
 			display: flex;
 			align-items: center;
-			gap: 1em;
+			gap: 0.5em;
 		}
 
 		.comment-header {
@@ -144,7 +162,7 @@
 			display: flex;
 			flex-direction: column;
 			gap: 0.5em;
-			margin-bottom: 0.5em;
+			margin: 0.25em 0;
 
 			> .ext-comments-comment-item:not([data-deleted]):not(.is-highlighted) {
 				background: var(--comments-secondary-background);
@@ -177,7 +195,7 @@
 
 	.comment-avatar img {
 		width: 40px;
-		height: auto;
+		height: 40px;
 		border-radius: 50%;
 		border: 1px solid @border-color-base;
 	}
@@ -194,11 +212,12 @@
 
 	.comment-rating-actions {
 		display: flex;
-		flex-direction: column;
+		flex-direction: row;
 
 		button {
 			background: none;
 			border: none;
+			padding: 0.1em;
 
 			.cdx-icon {
 				color: var(--comments-muted);

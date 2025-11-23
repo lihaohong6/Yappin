@@ -4,7 +4,6 @@
 			<div v-if="comment.user.avatar" class="comment-avatar">
 				<img :src="comment.user.avatar" :alt="comment.user.name" loading="lazy" />
 			</div>
-			<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
 			<div class="comment-body">
 				<div class="comment-header">
 					<div class="comment-author-wrapper">
@@ -14,6 +13,7 @@
 						<div v-else class="comment-author">
 							{{ comment.user.name }}
 						</div>
+						<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
 						<div class="comment-info">
 							<span
 								class="comment-rating"
