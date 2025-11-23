@@ -36,6 +36,7 @@ class CommentFactory {
 		$comment->mId = (int)$row->c_id;
 		$comment->mPageId = (int)$row->c_page;
 
+		$comment->mUsername = $row->c_username;
 		if ( $user !== null && $user->getId() !== 0 ) {
 			$comment->setActor( $user );
 		} else {
