@@ -33,6 +33,8 @@ class Comment {
 	/** @var int */
 	public $mActorId;
 
+	public ?string $mUsername;
+
 	/** @var string|null */
 	public $mCreatedTimestamp = null;
 
@@ -85,6 +87,7 @@ class Comment {
 
 	/**
 	 * The ID of this comment
+	 *
 	 * @return int
 	 */
 	public function getId() {
@@ -93,6 +96,7 @@ class Comment {
 
 	/**
 	 * The wiki page the comment was posted on
+	 *
 	 * @return Title
 	 */
 	public function getTitle() {
@@ -119,27 +123,52 @@ class Comment {
 
 	/**
 	 * The actor who posted the comment
-	 * @return UserIdentity
+	 *
+	 * @return UserIdentity|null
 	 */
-	public function getActor() {
+	public function getActor(): ?UserIdentity {
 		if ( $this->mActor ) {
 			return $this->mActor;
 		}
 
+		if ( $this->mActorId === 0 ) {
+			return null;
+		}
+
 		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
+
 		return $this->mActor;
+	}
+
+	public function getCommenterName(): string {
+		$actor = $this->getActor();
+		if ( $actor ) {
+			return $actor->getName();
+		}
+		return $this->mUsername;
+	}
+
+	public function commenterIsAnon(): bool {
+		$actor = $this->getActor();
+		if ( $actor ) {
+			return !$actor->isRegistered();
+		}
+		return preg_match( '/^\d/', $this->mUsername ) === 1;
 	}
 
 	/**
 	 * Sets the actor who posted this comment
 	 *
 	 * This method returns the current Comment object for easier chaining.
+	 *
 	 * @param UserIdentity $user
+	 *
 	 * @return Comment
 	 */
 	public function setActor( $user ) {
 		$this->mActor = $user;
 		$this->mActorId = $this->actorStore->acquireActorId( $user, $this->dbw );
+
 		return $this;
 	}
 
@@ -475,10 +504,10 @@ class Comment {
 		if ( !$isUpdate ) {
 			// If there is no ID for this object, then we'll presume it doesn't exist.
 			$this->dbw->newInsertQueryBuilder()
-				->insertInto( self::TABLE_NAME )
-				->row( $row )
-				->caller( __METHOD__ )
-				->execute();
+					  ->insertInto( self::TABLE_NAME )
+					  ->row( $row )
+					  ->caller( __METHOD__ )
+					  ->execute();
 
 			// Set the ID of this object to the newly inserted object ID
 			$this->mId = $this->dbw->insertId();
@@ -498,14 +527,15 @@ class Comment {
 	/**
 	 * @return array
 	 */
-	public function toArray() {
+	public function toArray(): array {
 		return [
 			'id' => $this->mId,
 			'created' => wfTimestamp( TS_ISO_8601, $this->mCreatedTimestamp ),
 			'edited' => wfTimestampOrNull( TS_ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
-				'name' => $this->getActor()->getName(),
-				'anon' => !$this->getActor()->isRegistered()
+				// FIXME: just get the actor as before. Manually construct a fake actor object if the actor does not exist.
+				'name' => $this->getCommenterName(),
+				'anon' => $this->commenterIsAnon()
 			],
 			'parent' => $this->mParentId,
 			'deleted' => $this->getDeletedActor() ? [

@@ -182,7 +182,8 @@ class CommentsPager {
 	 * @param SelectQueryBuilder $builder
 	 */
 	private function addActorJoin( $builder ) {
-		$builder->join( 'actor', null, 'actor_id = c_actor' )
+		// Imported comments have c_actor 0. Use left join so that they are not left out.
+		$builder->leftJoin( 'actor', null, 'actor_id = c_actor' )
 			->select( [ 'actor_id', 'actor_name', 'actor_user' ] );
 	}
 

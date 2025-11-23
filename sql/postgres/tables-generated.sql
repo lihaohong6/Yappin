@@ -6,6 +6,7 @@ CREATE TABLE com_comment (
   c_id SERIAL NOT NULL,
   c_page INT NOT NULL,
   c_actor BIGINT DEFAULT 0 NOT NULL,
+  c_username TEXT DEFAULT NULL,
   c_timestamp TIMESTAMPTZ NOT NULL,
   c_parent INT DEFAULT NULL,
   c_deleted_actor BIGINT DEFAULT NULL,

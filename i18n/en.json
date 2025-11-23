@@ -71,5 +71,11 @@
 	"sidebar-yappin-commentcontrol": "Control comments",
 	"log-comments-name": "Comment log",
 	"log-description-comments": "Tracks events related to comments on the wiki",
-	"logentry-comments-control": "$1 {{GENDER:$2|changed comment control status}} of page $3 to $4"
+	"logentry-comments-control": "$1 {{GENDER:$2|changed comment control status}} of page $3 to $4",
+	"importcomments": "Import comments",
+	"yappin-import-summary": "Import complete. Imported: $1. Skipped: $2. Failed: $3.",
+	"logentry-comments-import": "$1 {{GENDER:$2|imported}} $4 comments on page $3.",
+	"exportcomments": "Export comments",
+	"yappin-export-include-deleted": "Include deleted comments",
+	"yappin-export-submit": "Export"
 }

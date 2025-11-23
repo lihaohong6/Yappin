@@ -285,7 +285,9 @@
 	},
 	"SpecialPages": {
 		"Comments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialComments",
-		"CommentControl": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialCommentControl"
+		"CommentControl": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialCommentControl",
+		"ImportComments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialImportComments",
+		"ExportComments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialExportComments"
 	},
 	"ExtensionMessagesFiles": {
 		"CommentsAlias": "src/Yappin.i18n.alias.php"

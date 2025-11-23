@@ -36,10 +36,13 @@ class CommentFactory {
 		$comment->mId = (int)$row->c_id;
 		$comment->mPageId = (int)$row->c_page;
 
-		if ( $user !== null ) {
+		if ( $user !== null && $user->getId() !== 0 ) {
 			$comment->setActor( $user );
 		} else {
 			$comment->mActorId = (int)$row->c_actor;
+			if ( $user !== null ) {
+				$comment->mUsername = $user;
+			}
 		}
 
 		$parentId = (int)$row->c_parent;

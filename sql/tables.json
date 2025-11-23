@@ -33,6 +33,16 @@
 				}
 			},
 			{
+				"name": "c_username",
+				"comment": "Username of commenter. Not needed unless c_actor is 0 due to an unrecognized username from an import.",
+				"type": "binary",
+				"options": {
+					"length": 255,
+					"notnull": false,
+					"default": null
+				}
+			},
+			{
 				"name": "c_timestamp",
 				"comment": "Timestamp of when the comment was created",
 				"type": "mwtimestamp",
