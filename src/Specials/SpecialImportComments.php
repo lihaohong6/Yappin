@@ -222,8 +222,9 @@ class SpecialImportComments extends FormSpecialPage {
 				}
 				$wikitext = $commentData['wikitext'] ?? '';
 				$parserOpts = ParserOptions::newFromAnon();
+				$parserOpts->setSuppressSectionEditLinks();
 				$parserOutput = $this->parser->parse( $wikitext, $title, $parserOpts );
-				// FIXME: this still contains wrappers such as mw-parser-output
+				$parserOutput->clearWrapperDivClass();
 				$html = $parserOutput->runOutputPipeline( $parserOpts )->getRawText();
 
 				$actorId = 0;

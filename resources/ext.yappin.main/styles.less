@@ -129,6 +129,9 @@
 		}
 
 		.comment-content {
+			/* Prevent comments from escaping comment box with position: absolute */
+			position: relative;
+
 			img {
 				max-width: 50% !important;
 				height: auto;

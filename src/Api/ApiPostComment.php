@@ -59,6 +59,7 @@ class ApiPostComment extends SimpleHandler {
 			throw new HttpException( 'Must provide either page ID or parent ID' );
 		}
 
+		// FIXME: can we trust user input here?
 		$html = trim( (string)$body[ 'html' ] );
 		$wikitext = trim( (string)$body[ 'wikitext' ] );
 
