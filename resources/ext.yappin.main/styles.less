@@ -18,17 +18,18 @@ When Yappin loads VE via ResourceLoader, mediawiki.skinning.interface gets loade
 request, which is fine, but it also overrides the version that uses Codex design tokens because they have the same
 specificity and this one is loaded later.
 
-This is a band-aid to fix the worst visual anomalies caused by this issue.
+This is a band-aid to fix the worst visual anomalies caused by this issue until it is no longer reproducible after
+some comments are dropped from the database. In particular, mediawiki.skinning.interface is somehow no longer loaded.
 */
-:root {
-	a:where(:not([role="button"])) {
-		color: @color-progressive;
-	}
-
-	a:where(:not([role="button"])):visited {
-		color: @color-visited;
-	}
-}
+//:root {
+//	a:where(:not([role="button"])) {
+//		color: @color-progressive;
+//	}
+//
+//	a:where(:not([role="button"])):visited {
+//		color: @color-visited;
+//	}
+//}
 
 
 #ext-comments-container {
