@@ -26,7 +26,7 @@ class SpecialImportComments extends FormSpecialPage {
 	private UserIdentityLookup $userLookup;
 
 	public function __construct() {
-		parent::__construct( 'ImportComments', 'comments-manage' );
+		parent::__construct( 'ImportComments', 'comments-import' );
 		$services = MediaWikiServices::getInstance();
 		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
 		$this->dbr = $services->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );

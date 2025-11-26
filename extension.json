@@ -66,6 +66,7 @@
 	"AvailableRights": [
 		"comments",
 		"comments-manage",
+		"comments-import",
 		"comments-upload"
 	],
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",

@@ -9,6 +9,7 @@
 	"yappin-container-header": "Comments",
 	"right-comments": "Post comments on a wiki page",
 	"right-comments-manage": "Manage comments that users have posted",
+	"right-comments-import": "Import comments from a JSON file",
 	"comments": "Comments",
 	"yappin-no-js": "Please wait while this container loads. Note: JavaScript must be enabled in your browser.",
 	"yappin-rating": "$1 {{PLURAL:$2|vote|votes}}",
