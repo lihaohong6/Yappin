@@ -4,7 +4,6 @@ namespace MediaWiki\Extension\Yappin\Specials;
 
 use Exception;
 use MediaWiki\Exception\PermissionsError;
-use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\Json\FormatJson;
@@ -20,7 +19,6 @@ use MediaWiki\User\UserIdentityLookup;
 use Wikimedia\Rdbms\DBConnRef;
 
 class SpecialImportComments extends FormSpecialPage {
-	private CommentFactory $commentFactory;
 	private DBConnRef $dbr;
 	private ParsoidParser $parser;
 	private UserIdentityLookup $userLookup;
@@ -28,7 +26,6 @@ class SpecialImportComments extends FormSpecialPage {
 	public function __construct() {
 		parent::__construct( 'ImportComments', 'comments-import' );
 		$services = MediaWikiServices::getInstance();
-		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
 		$this->dbr = $services->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 		$this->parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
 		$this->userLookup = MediaWikiServices::getInstance()->getUserIdentityLookup();
@@ -55,9 +52,7 @@ class SpecialImportComments extends FormSpecialPage {
 		if ( !empty( $upload['error'] ) ) {
 			return match ( $upload['error'] ) {
 				UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => Status::newFatal( 'yappin-import-file-too-large' ),
-				UPLOAD_ERR_PARTIAL => Status::newFatal( 'yappin-import-partial-upload' ),
-				UPLOAD_ERR_NO_TMP_DIR => Status::newFatal( 'yappin-import-no-temp-dir' ),
-				default => Status::newFatal( 'yappin-import-upload-error' ),
+				default => Status::newFatal( 'yappin-import-upload-error', $upload['error'] ),
 			};
 		}
 
@@ -149,15 +144,15 @@ class SpecialImportComments extends FormSpecialPage {
 				$logId = $logEntry->insert( $dbw );
 				$logEntry->publish( $logId );
 
-				$output->addWikiMsg( 'yappin-import-success', $title->getPrefixedText(), $pageImported );
+				$output->addWikiMsg( 'yappin-import-success', $pageTitle, $pageImported );
 			}
 
 			if ( $pageSkipped > 0 ) {
-				$output->addWikiMsg( 'yappin-import-skipped', $title->getPrefixedText(), $pageSkipped );
+				$output->addWikiMsg( 'yappin-import-skipped', $pageTitle, $pageSkipped );
 			}
 
 			if ( $pageFailed > 0 ) {
-				$output->addWikiMsg( 'yappin-import-failed-count', $title->getPrefixedText(), $pageFailed );
+				$output->addWikiMsg( 'yappin-import-failed-count', $pageTitle, $pageFailed );
 			}
 		}
 
