@@ -150,6 +150,8 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		.comment-content {
 			/* Prevent comments from escaping comment box with position: absolute */
 			position: relative;
+			/* Prevent long comments from overflowing the container */
+			overflow-wrap: anywhere;
 
 			img {
 				max-width: 50% !important;
