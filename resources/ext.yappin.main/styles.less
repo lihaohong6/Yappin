@@ -123,6 +123,10 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 			display: flex;
 			align-items: center;
 			gap: 0.5em;
+
+			@media (max-width: 450px) {
+				flex-wrap: wrap;
+			}
 		}
 
 		.comment-header {
