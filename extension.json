@@ -46,9 +46,6 @@
 		"UseAbuseFilter": {
 			"value": true
 		},
-		"FileBackend": {
-			"value": ""
-		},
 		"EnabledNamespaces": {
 			"value": {},
 			"merge_strategy": "array_plus"
@@ -66,8 +63,7 @@
 	"AvailableRights": [
 		"comments",
 		"comments-manage",
-		"comments-import",
-		"comments-upload"
+		"comments-import"
 	],
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
 	"LogTypes": [ "comments" ],
@@ -152,14 +148,6 @@
 			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiVoteComment",
 			"services": [
 				"Yappin.CommentFactory"
-			]
-		},
-		{
-			"path": "/comments/v0/comment/upload",
-			"method": "POST",
-			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiUploadFile",
-			"services": [
-				"Yappin.CommentFileService"
 			]
 		}
 	],
