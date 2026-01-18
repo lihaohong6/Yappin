@@ -389,7 +389,7 @@ class Comment {
 	 * on every page view is expensive and unnecessary.
 	 *
 	 * @param bool $fromHtml - whether to use $this->html to
-	 * @return string
+	 * @return void
 	 */
 	public function reparse( $fromHtml = false ) {
 		if ( $fromHtml ) {
@@ -421,7 +421,7 @@ class Comment {
 			$parserOpts = $this->mActor ? ParserOptions::newFromUser( $this->mActor ) : ParserOptions::newFromAnon();
 			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitle(), $parserOpts );
 
-			$this->mHtml = $parserOutput->getText();
+			$this->mHtml = $parserOutput->runOutputPipeline( $parserOpts )->getContentHolderText();
 		}
 	}
 
