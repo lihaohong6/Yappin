@@ -105,7 +105,8 @@ module.exports = exports = defineComponent( {
 						error = result.xhr.responseJSON.messageTranslations.en;
 					}
 				} else {
-					error = mw.Message( 'unknown-error' );
+					error = mw.message( 'unknown-error' ).text();
+					console.log( result );
 				}
 				mw.notify( error, { type: 'error', tag: 'post-comment-error' } );
 			} );

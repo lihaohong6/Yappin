@@ -412,6 +412,7 @@ class Comment {
 
 			$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
 			$parserOpts = $this->mActor ? ParserOptions::newFromUser( $this->mActor ) : ParserOptions::newFromAnon();
+			$parserOpts->setAllowSpecialInclusion( false );
 			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitle(), $parserOpts );
 
 			$this->mHtml = $parserOutput->runOutputPipeline( $parserOpts )->getContentHolderText();
