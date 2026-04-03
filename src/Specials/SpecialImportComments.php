@@ -15,7 +15,9 @@ use MediaWiki\Parser\Parsoid\ParsoidParser;
 use MediaWiki\SpecialPage\FormSpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
+use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentityLookup;
+use MediaWiki\User\UserIdentityValue;
 use Wikimedia\Rdbms\DBConnRef;
 
 class SpecialImportComments extends FormSpecialPage {
@@ -86,6 +88,7 @@ class SpecialImportComments extends FormSpecialPage {
 		$output = $this->getOutput();
 		$services = MediaWikiServices::getInstance();
 		$dbw = $services->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		$actorStore = $services->getActorStore();
 
 		$totalImported = 0;
 		$totalSkipped = 0;
@@ -124,6 +127,7 @@ class SpecialImportComments extends FormSpecialPage {
 				$title,
 				$pageData['comments'],
 				$dbw,
+				$actorStore,
 				$output,
 				$skipExisting,
 				$attachUsers
@@ -165,6 +169,7 @@ class SpecialImportComments extends FormSpecialPage {
 	 * @param Title $title
 	 * @param array $commentsList
 	 * @param DBConnRef $dbw
+	 * @param ActorStore $actorStore
 	 * @param OutputPage $output
 	 * @param bool $skipExisting
 	 *
@@ -174,6 +179,7 @@ class SpecialImportComments extends FormSpecialPage {
 		Title $title,
 		array $commentsList,
 		DBConnRef $dbw,
+		ActorStore $actorStore,
 		OutputPage $output,
 		bool $skipExisting,
 		bool $attachUsers
@@ -222,21 +228,22 @@ class SpecialImportComments extends FormSpecialPage {
 				$parserOutput->clearWrapperDivClass();
 				$html = $parserOutput->runOutputPipeline( $parserOpts )->getRawText();
 
-				$actorId = 0;
 				$username = $commentData['username'] ?? null;
-				if ( $attachUsers && $username !== null ) {
-					$userIdentity = $this->userLookup->getUserIdentityByName( $username );
-					if ( $userIdentity !== null ) {
-						$actorId = $userIdentity->getId();
-						$username = null;
+				$actorUser = null;
+				if ( $username !== null ) {
+					if ( $attachUsers ) {
+						$actorUser = $this->userLookup->getUserIdentityByName( $username );
+					}
+					if ( $actorUser === null ) {
+						$actorUser = UserIdentityValue::newExternal( 'imported', $username );
 					}
 				}
+				$actorId = $actorUser ? $actorStore->acquireActorId( $actorUser, $dbw ) : 0;
 
 				// Note that we should never use the old comment id.
 				$row = [
 					'c_page' => $pageId,
 					'c_actor' => $actorId,
-					'c_username' => $username,
 					'c_parent' => $parentId,
 					'c_timestamp' => $dbw->timestamp( $commentData['timestamp'] ),
 					'c_edited_timestamp' => isset( $commentData['editedTimestamp'] ) ? $dbw->timestamp(

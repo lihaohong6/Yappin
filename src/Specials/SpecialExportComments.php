@@ -8,14 +8,15 @@ use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\SpecialPage\FormSpecialPage;
 use MediaWiki\Status\Status;
-use MediaWiki\User\UserFactory;
+use MediaWiki\User\ActorStore;
+use MediaWiki\User\ExternalUserNames;
 
 class SpecialExportComments extends FormSpecialPage {
-	private UserFactory $userFactory;
+	private ActorStore $actorStore;
 
 	public function __construct() {
 		parent::__construct( 'ExportComments', 'comments-manage' );
-		$this->userFactory = MediaWikiServices::getInstance()->getUserFactory();
+		$this->actorStore = MediaWikiServices::getInstance()->getActorStore();
 	}
 
 	protected function getFormFields(): array {
@@ -90,12 +91,9 @@ class SpecialExportComments extends FormSpecialPage {
 				echo ',';
 			}
 
-			$actor = (int)$row->c_actor;
-			if ($actor === 0 ) {
-				$username = $row->c_username;
-			} else {
-				$username = $this->userFactory->newFromActorId( $actor )->getUser()->getName();
-			}
+			$actorIdentity = $this->actorStore->getActorById( (int)$row->c_actor, $dbr );
+			$rawName = $actorIdentity?->getName();
+			$username = $rawName !== null ? ExternalUserNames::getLocal( $rawName ) : null;
 
 			$commentObj = [
 				'id' => (int)$row->c_id,

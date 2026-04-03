@@ -11,7 +11,6 @@ use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
-use MediaWiki\User\UserIdentityValue;
 use MediaWiki\Parser\ParserOptions;
 use Telepedia\UserProfileV2\Avatar\UserProfileV2Avatar;
 use Wikimedia\Rdbms\IDatabase;
@@ -34,8 +33,6 @@ class Comment {
 
 	/** @var int */
 	public $mActorId;
-
-	public ?string $mUsername;
 
 	/** @var string|null */
 	public $mCreatedTimestamp = null;
@@ -133,11 +130,7 @@ class Comment {
 			return $this->mActor;
 		}
 
-		if ( $this->mActorId === 0 ) {
-			$this->mActor = new UserIdentityValue( $this->mActorId, $this->mUsername );
-		} else {
-			$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
-		}
+		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
 
 		return $this->mActor;
 	}
