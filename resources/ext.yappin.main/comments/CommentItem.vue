@@ -76,14 +76,14 @@
 						:parent-id="comment.id"
 					></comment-item>
 				</div>
-				<new-comment-input
-					:parent-id="parentId || comment.id"
-					:ping="parentId ? comment.user.name : ''"
-					:ping-anon="comment.user.anon"
-					:is-writing-comment="isWritingReply"
-					:on-cancel="() => isWritingReply = false"
-				></new-comment-input>
 			</div>
+			<new-comment-input
+				:parent-id="parentId || comment.id"
+				:ping="parentId ? comment.user.name : ''"
+				:ping-anon="comment.user.anon"
+				:is-writing-comment="isWritingReply"
+				:on-cancel="() => isWritingReply = false"
+			></new-comment-input>
 		</div>
 		<div class="comment-footer">
 			<button

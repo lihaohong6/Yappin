@@ -13,6 +13,8 @@
 	--comments-muted: var(--color-subtle, #757575);
 	--comments-button-hover: var(--color-progressive--hover, #05408e);
 	--comments-button-delete-hover: var(--color-destructive--hover, #8e0505);
+	--comments-preview-border: var(--comments-border);
+	--comments-preview-background: var(--comments-highlight-background);
 }
 
 /*
@@ -88,7 +90,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 	}
 
 	.comment-input-container {
-		margin-bottom: 0.5em;
+		flex: 1 100%;
 	}
 
 	.ext-comments-comments-list {
@@ -106,6 +108,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 
 		> div:first-child {
 			display: flex;
+			flex-wrap: wrap;
 			gap: 0.5em;
 		}
 
@@ -148,7 +151,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		}
 
 		.comment-body {
-			flex-grow: 1;
+			flex: 1 100px;
 		}
 
 		.comment-content {
@@ -194,6 +197,18 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 
 			&.comment-action-link:hover .cdx-icon {
 				color: var(--comments-button-hover);
+			}
+		}
+
+		.comment-preview {
+			margin-top: 4px;
+
+			.comment-preview-content {
+				// In case the preview is empty
+				min-height: 1em;
+				border: 1px solid var(--comments-preview-border);
+				padding: 4px 8px;
+				background-color: var(--comments-preview-background);
 			}
 		}
 	}
@@ -311,7 +326,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 
 		.comment-input-actions {
 			display: flex;
-			margin: 0.5em 0 1em;
+			margin: 0.5em 0 0 0;
 			gap: 0.5em;
 		}
 	}
