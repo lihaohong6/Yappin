@@ -41,16 +41,19 @@ class Utils {
 
 	/**
 	 * @param OutputPage $out
+	 * @param Config $config
 	 * @return void
 	 */
-	public static function loadCommentsModule( OutputPage $out ) {
-		// On desktop, load VE dependencies. On mobile, we will just use a normal <input> for writing a comment.
-		$services = MediaWikiServices::getInstance();
-		if ( !(
-			ExtensionRegistry::getInstance()->isLoaded( 'MobileFrontend' ) &&
-			$services->getService( 'MobileFrontend.Context' )->shouldDisplayMobileView()
-		) ) {
-			$out->addModules( [ 'ext.yappin.ve.desktop' ] );
+	public static function loadCommentsModule( OutputPage $out, Config $config ) {
+		$useVE = $config->get( 'CommentsUseVisualEditor' ) &&
+			ExtensionRegistry::getInstance()->isLoaded( 'VisualEditor' );
+
+		if ( $useVE ) {
+			$services = MediaWikiServices::getInstance();
+			$isMobile = ExtensionRegistry::getInstance()->isLoaded( 'MobileFrontend' ) &&
+				$services->getService( 'MobileFrontend.Context' )->shouldDisplayMobileView();
+			$out->addModules( [ $isMobile ? 'ext.yappin.ve.mobile' : 'ext.yappin.ve.desktop' ] );
+			$out->addModules( [ 'ext.yappin.ve' ] );
 		}
 
 		$out->addModules( [ 'ext.yappin.main' ] );

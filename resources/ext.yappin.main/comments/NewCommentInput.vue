@@ -1,6 +1,6 @@
 <template>
 	<div v-show="isWritingComment" class="comment-input-container">
-		<div class="ve-area-wrapper">
+		<div class="ve-area-wrapper" :class="{'wikitext-area-wrapper': !useVE}">
 			<textarea
 				ref="input"
 				rows="5"
@@ -14,9 +14,19 @@
 				<span v-else-if="isTopLevel">{{ $i18n( 'yappin-post-submit-top-level' ).text() }}</span>
 				<span v-else>{{ $i18n( 'yappin-post-submit-child' ).text() }}</span>
 			</cdx-button>
+			<cdx-button v-if="!useVE" @click="previewComment">
+				{{ $i18n( 'yappin-preview-button' ).text() }}
+			</cdx-button>
 			<cdx-button action="destructive" @click="onCancel">
 				{{ $i18n( 'cancel' ).text() }}
 			</cdx-button>
+		</div>
+		<div v-if="!useVE && showPreview" class="comment-preview">
+			<strong>{{ $i18n( 'yappin-preview-label' ).text() }}</strong>
+			<div class="comment-preview-content">
+				<span v-if="isLoadingPreview">{{ $i18n( 'yappin-preview-loading' ).text() }}</span>
+				<div v-else v-html="previewHtml"></div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -31,7 +41,8 @@ const api = new mw.Rest();
 
 const config = mw.config.get( [
 	'wgArticleId',
-	'wgContentLanguage'
+	'wgContentLanguage',
+	'wgPageName'
 ] );
 
 module.exports = exports = defineComponent( {
@@ -65,6 +76,18 @@ module.exports = exports = defineComponent( {
 			required: false
 		}
 	},
+	computed: {
+		isTopLevel() {
+			return this.$props.parentId === null;
+		},
+		useVE() {
+			const commentsConfig = mw.config.get( 'wgComments' );
+			return commentsConfig.useVisualEditor === true &&
+				typeof mw.commentsExt !== 'undefined' &&
+				typeof mw.commentsExt.ve !== 'undefined' &&
+				mw.commentsExt.ve.Editor.static.isSupported();
+		}
+	},
 	methods: {
 		submitComment() {
 			const body = {};
@@ -82,7 +105,7 @@ module.exports = exports = defineComponent( {
 				body[ 'html' ] = this.$data.ve.target.getSurface().getHtml();
 			} else {
 				// If we're not using VE, just send the raw value of the input as wikitext.
-				body[ 'wikitext' ] = $( this.$refs.input ).val();
+				body[ 'wikitext' ] = this.$refs.input.value;
 			}
 
 			// Use .ajax here rather than .post to circumvent bug: https://bugs.jquery.com/ticket/12326/
@@ -106,6 +129,7 @@ module.exports = exports = defineComponent( {
 
 				this.$props.onCancel();
 			} ).fail( ( _, result ) => {
+				let error;
 				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
 					result.xhr.responseJSON, 'messageTranslations' ) ) {
 					if ( result.xhr.responseJSON.errorKey === 'yappin-submit-error-spam' ) {
@@ -116,35 +140,68 @@ module.exports = exports = defineComponent( {
 					if ( config.wgContentLanguage in result.xhr.responseJSON.messageTranslations ) {
 						error = result.xhr.responseJSON.messageTranslations[ config.wgContentLanguage ];
 					} else {
-						error = result.xhr.responseJSON.messageTranslations.en
+						error = result.xhr.responseJSON.messageTranslations.en;
 					}
 				} else {
 					error = mw.Message( 'unknown-error' );
 				}
 				mw.notify( error, { type: 'error', tag: 'post-comment-error' } );
-			} )
+			} );
+		},
+		previewComment() {
+			const wikitext = this.$refs.input.value;
+			this.$data.isLoadingPreview = true;
+			this.$data.showPreview = true;
+			new mw.Api().get( {
+				action: 'parse',
+				text: wikitext,
+				contentmodel: 'wikitext',
+				title: config.wgPageName,
+				prop: 'text',
+				format: 'json'
+			} ).then( ( data ) => {
+				this.$data.previewHtml = data.parse.text[ '*' ];
+			} ).always( () => {
+				this.$data.isLoadingPreview = false;
+			} );
 		}
 	},
 	data() {
 		return {
 			store,
-			ve: null
+			ve: null,
+			showPreview: false,
+			previewHtml: '',
+			isLoadingPreview: false
 		};
 	},
 	watch: {
 		isWritingComment( val ) {
 			const $input = $( this.$refs.input );
-			if ( val === true && this.$data.ve === null && mw.commentsExt.ve.Editor.static.isSupported() ) {
+			if ( !this.useVE ) {
+				const ping = this.$props.ping;
+				let val = '';
+				if ( ping !== "" ) {
+					if (ping.startsWith("imported>")) {
+						val = `@${ping}: `;
+					} else {
+						val = `@[[User:${ping}|${ping}]]: `;
+					}
+				}
+				$input.val( val );
+				this.$data.showPreview = false;
+				this.$data.previewHtml = '';
+			} else if ( val === true && this.$data.ve === null ) {
 				// If a user needs to be explicitly pinged due to the lack of nested replies, fill in the ping
 				// as a link in VE
 				const ping = this.$props.ping;
 				if ( ping !== "" ) {
 					let pingHtml;
 					if ( this.$props.pingAnon ) {
-						pingHtml = `<p>@${ping}:&nbsp;</p>`
+						pingHtml = `<p>@${ping}:&nbsp;</p>`;
 					} else {
 						const title = new mw.Title( ping, 2 );
-						pingHtml = `<p><a href="${title.getUrl()}" title="${title.getPrefixedText()}" rel="mw:WikiLink">@${ping}</a>:&nbsp;</p>`;
+						pingHtml = `<p>@<a href="${title.getUrl()}" title="${title.getPrefixedText()}" rel="mw:WikiLink">${ping}</a>:&nbsp;</p>`;
 					}
 					$input.val( pingHtml );
 				}
@@ -167,11 +224,6 @@ module.exports = exports = defineComponent( {
 					$input.val( '' );
 				}
 			}
-		}
-	},
-	computed: {
-		isTopLevel() {
-			return this.$props.parentId === null
 		}
 	}
 } );

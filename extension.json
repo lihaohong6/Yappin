@@ -12,12 +12,12 @@
 	"requires": {
 		"MediaWiki": ">= 1.45.0",
 		"extensions": {
-			"VisualEditor": "*",
 			"Echo": "*"
 		}
 	},
 	"suggests": {
 		"extensions": {
+			"VisualEditor": "*",
 			"UserProfileV2": "*"
 		}
 	},
@@ -44,6 +44,9 @@
 			"value": false
 		},
 		"UseAbuseFilter": {
+			"value": true
+		},
+		"UseVisualEditor": {
 			"value": true
 		},
 		"EnabledNamespaces": {
@@ -200,8 +203,7 @@
 				"mediawiki.api",
 				"oojs-ui-core",
 				"oojs-ui-widgets",
-				"moment",
-				"ext.yappin.ve"
+				"moment"
 			],
 			"codexComponents": [
 				"CdxIcon",
@@ -244,7 +246,10 @@
 				"yappin-parent-link",
 				"yappin-parent-link-inner",
 				"yappin-user-filter-banner",
-				"yappin-view-replies"
+				"yappin-view-replies",
+				"yappin-preview-button",
+				"yappin-preview-loading",
+				"yappin-preview-label"
 			]
 		},
 		"ext.yappin.ve.desktop": {
@@ -286,7 +291,10 @@
 		}
 	},
 	"SpecialPages": {
-		"Comments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialComments",
+		"Comments": {
+			"class": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialComments",
+			"services": [ "MainConfig" ]
+		},
 		"CommentControl": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialCommentControl",
 		"ImportComments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialImportComments",
 		"ExportComments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialExportComments"

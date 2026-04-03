@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Yappin\Specials;
 
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\SpecialPage\SpecialPage;
 
@@ -10,8 +11,11 @@ use MediaWiki\SpecialPage\SpecialPage;
  * all of the comments on the wiki. Users without JS enabled will see a message telling them to enable it.
  */
 class SpecialComments extends SpecialPage {
-	public function __construct() {
+	private Config $config;
+
+	public function __construct( Config $config ) {
 		parent::__construct( 'Comments' );
+		$this->config = $config;
 	}
 
 	/**
@@ -28,7 +32,7 @@ class SpecialComments extends SpecialPage {
 		$out = $this->getOutput();
 		$this->setHeaders();
 
-		Utils::loadCommentsModule( $out );
+		Utils::loadCommentsModule( $out, $this->config );
 		$out->addHTML(
 			'<noscript>' . $out->msg( 'yappin-no-script' )->text() . '</noscript>'
 		);

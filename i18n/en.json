@@ -98,5 +98,8 @@
 	"notification-header-yappin-mention": "[[User:$1]] mentioned you in a comment on [[$2]]",
 	"notification-body-yappin": "$1",
 	"echo-category-title-yappin": "Comment",
-	"echo-pref-tooltip-yappin": "Comment replies and mentions"
+	"echo-pref-tooltip-yappin": "Comment replies and mentions",
+	"yappin-preview-button": "Preview",
+	"yappin-preview-loading": "Loading preview...",
+	"yappin-preview-label": "Preview"
 }

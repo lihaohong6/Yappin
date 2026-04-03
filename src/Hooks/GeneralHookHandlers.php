@@ -56,7 +56,7 @@ class GeneralHookHandlers implements
 			return;
 		}
 
-		Utils::loadCommentsModule( $out );
+		Utils::loadCommentsModule( $out, $this->config );
 	}
 
 	/**
@@ -68,7 +68,8 @@ class GeneralHookHandlers implements
 	public function onResourceLoaderGetConfigVars( array &$vars, $skin, Config $config ): void {
 		$vars['wgComments'] = [
 			'resultsPerPage' => $config->get( 'CommentsResultsPerPage' ),
-			'readOnly' => $config->get( 'CommentsReadOnly' )
+			'readOnly' => $config->get( 'CommentsReadOnly' ),
+			'useVisualEditor' => $config->get( 'CommentsUseVisualEditor' ),
 		];
 	}
 
