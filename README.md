@@ -2,17 +2,18 @@
 MediaWiki extension which allows users to leave comments on a page, which is displayed underneath the page content.
 
 Forked from https://github.com/weirdgloop/mediawiki-extensions-Comments. Changes:
+- Provides a wikitext mode where the user inputs wikitext, which makes VisualEditor an optional dependency.
 - Send notifications for replies, mentions, and comments made on user pages.
 - Allow nested replies through mentions.
 - Display profile pictures from UserProfileV2.
-- Import comments from other services.
+- Import comments from other services using a generic JSON interface. Importing from CommentStreams is possible with a maintenance script.
 - Export all comments to a json file.
 - Disable commenting on a per-page basis.
-- Accommodate dark mode.
-- PHP 8.4 compatibility.
 
 ## Dependencies
-Requires MediaWiki 1.44+ and the [VisualEditor](https://www.mediawiki.org/wiki/Extension:VisualEditor) extension installed.
+Requires MediaWiki 1.45+ and the Echo extension.
+
+Optionally works with [VisualEditor](https://www.mediawiki.org/wiki/Extension:VisualEditor) and [UserProfileV2](https://www.mediawiki.org/wiki/Extension:UserProfileV2).
 
 ## Installing
 1. Enable the extension using `wfLoadExtension( 'Yappin' );`
