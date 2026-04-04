@@ -9,6 +9,11 @@ Forked from https://github.com/weirdgloop/mediawiki-extensions-Comments. Changes
 - Import comments from other services using a generic JSON interface. Importing from CommentStreams is possible with a maintenance script.
 - Export all comments to a json file.
 - Disable commenting on a per-page basis.
+- Use tables.json for the database schema so that it (hopefully) works for mysql, postgres, and sqlite.
+- Navigate automatically to the bottom of the page when viewing a specific comment.
+
+Caveats:
+- The original extension written by Weird Gloop deliberately minimizes its feature set to improve maintainability. This fork, in contrast, has a LOT of features, and is likely buggier than the original.
 
 ## Dependencies
 Requires MediaWiki 1.45+ and the Echo extension.
