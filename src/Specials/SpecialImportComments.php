@@ -26,7 +26,7 @@ class SpecialImportComments extends FormSpecialPage {
 	private UserIdentityLookup $userLookup;
 
 	public function __construct() {
-		parent::__construct( 'ImportComments', 'comments-import' );
+		parent::__construct( 'ImportComments', 'yappin-import' );
 		$services = MediaWikiServices::getInstance();
 		$this->dbr = $services->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
 		$this->parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
@@ -36,7 +36,7 @@ class SpecialImportComments extends FormSpecialPage {
 	public function execute( $par ) {
 		$user = $this->getUser();
 		if ( !$this->userCanExecute( $user ) ) {
-			throw new PermissionsError( 'comments-manage' );
+			throw new PermissionsError( 'yappin-manage' );
 		}
 		parent::execute( $par );
 	}

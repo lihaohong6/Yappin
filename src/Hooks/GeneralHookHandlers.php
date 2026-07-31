@@ -33,7 +33,7 @@ class GeneralHookHandlers implements
 	 * @return void
 	 */
 	public function onGetAllBlockActions( &$actions ) {
-		$actions[ 'comments' ] = 300;
+		$actions[ 'yappin-comment' ] = 300;
 	}
 
 	/**
@@ -81,7 +81,7 @@ class GeneralHookHandlers implements
 		}
 		$userHasRight = MediaWikiServices::getInstance()->getPermissionManager()->userHasRight(
 			$user,
-			'comments-manage'
+			'yappin-manage'
 		);
 		if ( !$userHasRight ) {
 			return;

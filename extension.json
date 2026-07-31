@@ -64,9 +64,9 @@
 		"BeforeCreateEchoEvent": "echo"
 	},
 	"AvailableRights": [
-		"comments",
-		"comments-manage",
-		"comments-import"
+		"yappin-comment",
+		"yappin-manage",
+		"yappin-import"
 	],
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
 	"LogTypes": [ "comments" ],

@@ -18,12 +18,12 @@ class Utils {
 	 * @return MessageValue|true
 	 */
 	public static function canUserComment( $userOrAuthority ) {
-		if ( !$userOrAuthority->isAllowed( 'comments' ) ) {
+		if ( !$userOrAuthority->isAllowed( 'yappin-comment' ) ) {
 			return new MessageValue( 'yappin-submit-error-noperm' );
 		}
 
 		$block = $userOrAuthority->getBlock();
-		if ( $block && ( $block->isSitewide() || $block->appliesToRight( 'comments' ) ) ) {
+		if ( $block && ( $block->isSitewide() || $block->appliesToRight( 'yappin-comment' ) ) ) {
 			return new MessageValue( 'yappin-submit-error-blocked' );
 		}
 
@@ -36,7 +36,7 @@ class Utils {
 	 * @return bool
 	 */
 	public static function canUserModerate( $userOrAuthority ) {
-		return $userOrAuthority->isAllowed( 'comments-manage' );
+		return $userOrAuthority->isAllowed( 'yappin-manage' );
 	}
 
 	/**

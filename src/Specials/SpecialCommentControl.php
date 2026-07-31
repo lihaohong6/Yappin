@@ -12,7 +12,7 @@ use function MediaWiki\Extension\Yappin\Models\commentControlStatusToKey;
 
 class SpecialCommentControl extends SpecialPage {
 	public function __construct() {
-		parent::__construct( 'CommentControl', 'comments-manage' );
+		parent::__construct( 'CommentControl', 'yappin-manage' );
 	}
 
 	public function execute( $subPage ) {
