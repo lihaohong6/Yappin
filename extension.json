@@ -25,11 +25,11 @@
 		"MediaWiki\\Extension\\Yappin\\": "src/"
 	},
 	"MessagesDirs": {
-		"Comments": [
+		"Yappin": [
 			"i18n"
 		]
 	},
-	"config_prefix": "wgComments",
+	"config_prefix": "wgYappin",
 	"config": {
 		"ShowOnMainPage": {
 			"value": false
@@ -159,16 +159,16 @@
 	],
 	"ResourceFileModulePaths": {
 		"localBasePath": "resources",
-		"remoteExtPath": "Comments/resources"
+		"remoteExtPath": "Yappin/resources"
 	},
 	"ConfigRegistry": {
-		"Comments": "GlobalVarConfig::newInstance"
+		"Yappin": "GlobalVarConfig::newInstance"
 	},
 	"ResourceModules": {
 		"ext.yappin.main": {
 			"class": "MediaWiki\\ResourceLoader\\CodexModule",
 			"localBasePath": "resources/ext.yappin.main",
-			"remoteExtPath": "Comments/resources/ext.yappin.main",
+			"remoteExtPath": "Yappin/resources/ext.yappin.main",
 			"packageFiles": [
 				"index.js",
 				"util.js",
@@ -266,7 +266,7 @@
 		},
 		"ext.yappin.ve": {
 			"localBasePath": "resources/ext.yappin.ve",
-			"remoteExtPath": "Comments/resources/ext.yappin.ve",
+			"remoteExtPath": "Yappin/resources/ext.yappin.ve",
 			"packageFiles": [
 				"index.js",
 				"registries.js",
@@ -301,7 +301,7 @@
 		"ExportComments": "MediaWiki\\Extension\\Yappin\\Specials\\SpecialExportComments"
 	},
 	"ExtensionMessagesFiles": {
-		"CommentsAlias": "src/Yappin.i18n.alias.php"
+		"YappinAlias": "src/Yappin.i18n.alias.php"
 	},
 	"manifest_version": 2
 }

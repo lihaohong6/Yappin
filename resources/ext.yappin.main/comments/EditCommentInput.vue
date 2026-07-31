@@ -58,7 +58,7 @@ module.exports = exports = defineComponent( {
 	},
 	computed: {
 		useVE() {
-			const commentsConfig = mw.config.get( 'wgComments' );
+			const commentsConfig = mw.config.get( 'wgYappin' );
 			return commentsConfig.useVisualEditor === true &&
 				typeof mw.commentsExt !== 'undefined' &&
 				typeof mw.commentsExt.ve !== 'undefined' &&

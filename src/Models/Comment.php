@@ -430,7 +430,7 @@ class Comment {
 		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromUserIdentity( $this->mActor );
 
 		// Run the comment through AbuseFilter, if it is installed and enabled
-		if ( $this->config->get( 'CommentsUseAbuseFilter' ) &&
+		if ( $this->config->get( 'YappinUseAbuseFilter' ) &&
 			ExtensionRegistry::getInstance()->isLoaded( 'Abuse Filter' ) ) {
 			$vars = AbuseFilterServices::getVariableGeneratorFactory()
 				->newGenerator()
@@ -509,7 +509,7 @@ class Comment {
 	 * @return array
 	 */
 	public function toArray(): array {
-		$showAvatars = $this->config->get( 'CommentsShowUPV2Avatars' );
+		$showAvatars = $this->config->get( 'YappinShowUPV2Avatars' );
 		$avatarUrl = null;
 		if ( $showAvatars && ExtensionRegistry::getInstance()->isLoaded( 'UserProfileV2' ) ) {
 			$userId = $this->getActor()->getId();

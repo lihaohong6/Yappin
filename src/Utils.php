@@ -45,7 +45,7 @@ class Utils {
 	 * @return void
 	 */
 	public static function loadCommentsModule( OutputPage $out, Config $config ) {
-		$useVE = $config->get( 'CommentsUseVisualEditor' ) &&
+		$useVE = $config->get( 'YappinUseVisualEditor' ) &&
 			ExtensionRegistry::getInstance()->isLoaded( 'VisualEditor' );
 
 		if ( $useVE ) {
@@ -66,7 +66,7 @@ class Utils {
 	 * @return bool
 	 */
 	public static function isCommentsEnabled( Config $config, Title $title ) {
-		$enabledNs = $config->get( 'CommentsEnabledNamespaces' );
+		$enabledNs = $config->get( 'YappinEnabledNamespaces' );
 
 		if ( empty( $enabledNs[ $title->getNamespace() ] ) ) {
 			return false;
@@ -80,7 +80,7 @@ class Utils {
 		if ( !$title->exists() ) {
 			return false;
 		}
-		if ( !$config->get( 'CommentsShowOnMainPage' ) && $title->isMainPage() ) {
+		if ( !$config->get( 'YappinShowOnMainPage' ) && $title->isMainPage() ) {
 			return false;
 		}
 

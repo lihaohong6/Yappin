@@ -52,7 +52,7 @@ class GeneralHookHandlers implements
 		}
 
 		// Do not run on the main page unless the config option is set
-		if ( !$this->config->get( 'CommentsShowOnMainPage' ) && $title->isMainPage() ) {
+		if ( !$this->config->get( 'YappinShowOnMainPage' ) && $title->isMainPage() ) {
 			return;
 		}
 
@@ -66,10 +66,10 @@ class GeneralHookHandlers implements
 	 * @return void
 	 */
 	public function onResourceLoaderGetConfigVars( array &$vars, $skin, Config $config ): void {
-		$vars['wgComments'] = [
-			'resultsPerPage' => $config->get( 'CommentsResultsPerPage' ),
-			'readOnly' => $config->get( 'CommentsReadOnly' ),
-			'useVisualEditor' => $config->get( 'CommentsUseVisualEditor' ),
+		$vars['wgYappin'] = [
+			'resultsPerPage' => $config->get( 'YappinResultsPerPage' ),
+			'readOnly' => $config->get( 'YappinReadOnly' ),
+			'useVisualEditor' => $config->get( 'YappinUseVisualEditor' ),
 		];
 	}
 
@@ -119,11 +119,11 @@ class GeneralHookHandlers implements
 	}
 
 	public static function onRegistration() {
-		global $wgCommentsEnabledNamespaces, $wgContentNamespaces;
+		global $wgYappinEnabledNamespaces, $wgContentNamespaces;
 
 		foreach ( $wgContentNamespaces as $contentNamespace ) {
-			if ( !isset( $wgCommentsEnabledNamespaces[$contentNamespace] ) ) {
-				$wgCommentsEnabledNamespaces[$contentNamespace] = true;
+			if ( !isset( $wgYappinEnabledNamespaces[$contentNamespace] ) ) {
+				$wgYappinEnabledNamespaces[$contentNamespace] = true;
 			}
 		}
 	}

@@ -7,7 +7,7 @@ use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 
 /**
- * Comments wiring for MediaWiki services.
+ * Yappin wiring for MediaWiki services.
  */
 return [
 	'Yappin.CommentFactory' => static function ( MediaWikiServices $services ): CommentFactory {
@@ -19,7 +19,7 @@ return [
 		return new CommentFileService(
 			$services->getFileBackendGroup(),
 			$services->getMainConfig()->get( MainConfigNames::UploadDirectory ),
-			$services->getMainConfig()->get( 'CommentsFileBackend' ),
+			$services->getMainConfig()->get( 'YappinFileBackend' ),
 		);
 	}
 ];

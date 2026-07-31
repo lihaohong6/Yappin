@@ -42,7 +42,7 @@ module.exports = exports = defineComponent( {
 	mounted() {
 		const self = this;
 		// When the app first loads, determine whether we should be displaying the comments in a read-only form
-		let readOnly = mw.config.get( 'wgComments' ).readOnly;
+		let readOnly = mw.config.get( 'wgYappin' ).readOnly;
 
 		const params = new URLSearchParams( window.location.search );
 

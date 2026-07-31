@@ -61,7 +61,7 @@ const api = new mw.Rest();
 
 const config = mw.config.get( [
 	'wgArticleId',
-	'wgComments'
+	'wgYappin'
 ] );
 
 module.exports = exports = defineComponent( {
@@ -129,7 +129,7 @@ module.exports = exports = defineComponent( {
 			} else {
 				// Get a list of all comments for the current page
 				const qsp = new URLSearchParams( {
-					limit: config.wgComments.resultsPerPage,
+					limit: config.wgYappin.resultsPerPage,
 					sort: this.$data.store.sortMethod,
 					user: this.$data.store.filterByUser ?? ''
 				} );
