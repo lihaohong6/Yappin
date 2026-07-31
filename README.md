@@ -40,7 +40,7 @@ To allow users to be blocked from leaving comments, `$wgEnablePartialActionBlock
 ## How does it work?
 Each wiki page has a comments section displayed at the bottom, which loads the comments (default: `50`) when the user scrolls down to it. Users can leave new comments, or reply to existing comments, which will be attributed to their wiki account or their IP address (if anonymous).
 
-When a user submits a comment, the HTML of the comment is converted (and sanitized) to wikitext syntax using MediaWiki's built-in Parsoid parser and stored. No new pages or namespaces are created by this extension; the comments are stored in their own table, `com_comment`.
+When a user submits a comment, the HTML of the comment is converted (and sanitized) to wikitext syntax using MediaWiki's built-in Parsoid parser and stored. No new pages or namespaces are created by this extension; the comments are stored in their own table, `yappin_comment`.
 
 Comments can be upvoted or downvoted, which will change the score displayed on each comment. This feature helps people find the most useful comments more easily. By default, the comments list is ordered by rating.
 
