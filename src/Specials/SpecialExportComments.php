@@ -45,15 +45,15 @@ class SpecialExportComments extends FormSpecialPage {
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
 		$conditions = [];
 		if ( !$includeDeleted ) {
-			$conditions[] = 'c_deleted_actor IS NULL';
+			$conditions[] = 'yap_deleted_actor IS NULL';
 		}
 
 		$res = $dbr->newSelectQueryBuilder()
 				   ->select( [ 'c.*', 'page_title', 'page_namespace', 'page_id' ] )
-				   ->from( 'com_comment', 'c' )
-				   ->join( 'page', null, 'c_page = page_id' )
+				   ->from( 'yappin_comment', 'c' )
+				   ->join( 'page', null, 'yap_page = page_id' )
 				   ->where( $conditions )
-				   ->orderBy( 'c_page' )
+				   ->orderBy( 'yap_page' )
 				   ->caller( __METHOD__ )
 				   ->fetchResultSet();
 
@@ -63,7 +63,7 @@ class SpecialExportComments extends FormSpecialPage {
 		$isFirstComment = true;
 
 		foreach ( $res as $row ) {
-			if ( $row->c_page !== $currentPageId ) {
+			if ( $row->yap_page !== $currentPageId ) {
 				if ( $currentArrayOpen ) {
 					echo ']}'; // Close previous comments array and page object
 				}
@@ -81,7 +81,7 @@ class SpecialExportComments extends FormSpecialPage {
 				// Manually start the JSON object to allow streaming comments array
 				echo '{"page":' . json_encode( $pageObj ) . ',"comments":[';
 
-				$currentPageId = $row->c_page;
+				$currentPageId = $row->yap_page;
 				$currentArrayOpen = true;
 				$isFirstPage = false;
 				$isFirstComment = true;
@@ -91,16 +91,16 @@ class SpecialExportComments extends FormSpecialPage {
 				echo ',';
 			}
 
-			$actorIdentity = $this->actorStore->getActorById( (int)$row->c_actor, $dbr );
+			$actorIdentity = $this->actorStore->getActorById( (int)$row->yap_actor, $dbr );
 			$rawName = $actorIdentity?->getName();
 			$username = $rawName !== null ? ExternalUserNames::getLocal( $rawName ) : null;
 
 			$commentObj = [
-				'id' => (int)$row->c_id,
-				'parentId' => $row->c_parent ? (int)$row->c_parent : null,
-				'timestamp' => wfTimestamp( TS_MW, $row->c_timestamp ),
-				'editedTimestamp' => $row->c_edited_timestamp ? wfTimestamp( TS_MW, $row->c_edited_timestamp ) : null,
-				'wikitext' => $row->c_wikitext,
+				'id' => (int)$row->yap_id,
+				'parentId' => $row->yap_parent ? (int)$row->yap_parent : null,
+				'timestamp' => wfTimestamp( TS_MW, $row->yap_timestamp ),
+				'editedTimestamp' => $row->yap_edited_timestamp ? wfTimestamp( TS_MW, $row->yap_edited_timestamp ) : null,
+				'wikitext' => $row->yap_wikitext,
 				'username' => $username
 			];
 

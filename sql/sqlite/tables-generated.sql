@@ -2,37 +2,38 @@
 -- Source: sql/tables.json
 -- Do not modify this file directly.
 -- See https://www.mediawiki.org/wiki/Manual:Schema_changes
-CREATE TABLE /*_*/com_comment (
-  c_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-  c_page INTEGER UNSIGNED NOT NULL, c_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
-  c_timestamp BLOB NOT NULL, c_parent INTEGER UNSIGNED DEFAULT NULL,
-  c_deleted_actor BIGINT UNSIGNED DEFAULT NULL,
-  c_rating INTEGER DEFAULT 0 NOT NULL,
-  c_html BLOB NOT NULL, c_wikitext BLOB NOT NULL,
-  c_edited_timestamp BLOB DEFAULT NULL
+CREATE TABLE /*_*/yappin_comment (
+  yap_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  yap_page INTEGER UNSIGNED NOT NULL,
+  yap_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
+  yap_timestamp BLOB NOT NULL, yap_parent INTEGER UNSIGNED DEFAULT NULL,
+  yap_deleted_actor BIGINT UNSIGNED DEFAULT NULL,
+  yap_rating INTEGER DEFAULT 0 NOT NULL,
+  yap_html BLOB NOT NULL, yap_wikitext BLOB NOT NULL,
+  yap_edited_timestamp BLOB DEFAULT NULL
 );
 
-CREATE INDEX c_timestamp ON /*_*/com_comment (c_timestamp);
+CREATE INDEX yap_timestamp ON /*_*/yappin_comment (yap_timestamp);
 
-CREATE INDEX c_parent ON /*_*/com_comment (c_parent);
+CREATE INDEX yap_parent ON /*_*/yappin_comment (yap_parent);
 
-CREATE INDEX c_page_timestamp ON /*_*/com_comment (c_page, c_timestamp);
+CREATE INDEX yap_page_timestamp ON /*_*/yappin_comment (yap_page, yap_timestamp);
 
-CREATE INDEX c_actor_timestamp ON /*_*/com_comment (c_actor, c_timestamp);
+CREATE INDEX yap_actor_timestamp ON /*_*/yappin_comment (yap_actor, yap_timestamp);
 
-CREATE INDEX c_rating_timestamp ON /*_*/com_comment (c_rating, c_timestamp);
+CREATE INDEX yap_rating_timestamp ON /*_*/yappin_comment (yap_rating, yap_timestamp);
 
 
-CREATE TABLE /*_*/com_rating (
-  cr_comment INTEGER UNSIGNED NOT NULL,
-  cr_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
-  cr_rating INTEGER NOT NULL,
-  PRIMARY KEY(cr_comment, cr_actor)
+CREATE TABLE /*_*/yappin_rating (
+  yr_comment INTEGER UNSIGNED NOT NULL,
+  yr_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
+  yr_rating INTEGER NOT NULL,
+  PRIMARY KEY(yr_comment, yr_actor)
 );
 
 
-CREATE TABLE /*_*/com_control (
-  cc_page INTEGER UNSIGNED NOT NULL,
-  cc_restriction SMALLINT UNSIGNED NOT NULL,
-  PRIMARY KEY(cc_page)
+CREATE TABLE /*_*/yappin_control (
+  yc_page INTEGER UNSIGNED NOT NULL,
+  yc_restriction SMALLINT UNSIGNED NOT NULL,
+  PRIMARY KEY(yc_page)
 );

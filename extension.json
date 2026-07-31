@@ -69,15 +69,15 @@
 		"yappin-import"
 	],
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
-	"LogTypes": [ "comments" ],
+	"LogTypes": [ "yappin" ],
 	"LogNames": {
-		"comments": "log-comments-name"
+		"yappin": "log-yappin-name"
 	},
 	"LogHeaders": {
-		"comments": "log-comments-header"
+		"yappin": "log-yappin-header"
 	},
 	"LogActionsHandlers": {
-		"comments/*": "MediaWiki\\Extension\\Yappin\\CommentsLogFormatter"
+		"yappin/*": "MediaWiki\\Extension\\Yappin\\CommentsLogFormatter"
 	},
 	"HookHandlers": {
 		"main": {

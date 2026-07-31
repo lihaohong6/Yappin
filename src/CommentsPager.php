@@ -130,13 +130,13 @@ class CommentsPager {
 	private function getOrderCondition() {
 		switch ( $this->sortMethod ) {
 			case $this::SORT_DATE_DESC:
-				return [ 'c_timestamp DESC' ];
+				return [ 'yap_timestamp DESC' ];
 			case $this::SORT_DATE_ASC:
-				return [ 'c_timestamp ASC' ];
+				return [ 'yap_timestamp ASC' ];
 			case $this::SORT_RATING_DESC:
-				return [ 'c_rating DESC, c_timestamp DESC' ];
+				return [ 'yap_rating DESC, yap_timestamp DESC' ];
 			case $this::SORT_RATING_ASC:
-				return [ 'c_rating ASC, c_timestamp DESC' ];
+				return [ 'yap_rating ASC, yap_timestamp DESC' ];
 			default:
 				return null;
 		}
@@ -148,9 +148,9 @@ class CommentsPager {
 	private function getOffsetCondition() {
 		switch ( $this->sortMethod ) {
 			case self::SORT_DATE_DESC:
-				return 'c_timestamp <= ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+				return 'yap_timestamp <= ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
 			case self::SORT_DATE_ASC:
-				return 'c_timestamp >= ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
+				return 'yap_timestamp >= ' . $this->db->addQuotes( $this->db->timestamp( $this->continue ) );
 			default:
 				return null;
 		}
@@ -160,7 +160,7 @@ class CommentsPager {
 	 * @param SelectQueryBuilder $builder
 	 */
 	private function addPageJoin( $builder ) {
-		$builder->join( 'page', null, 'page_id = c_page' )
+		$builder->join( 'page', null, 'page_id = yap_page' )
 			->select( [ 'page_id', 'page_namespace', 'page_title' ] );
 	}
 
@@ -169,9 +169,9 @@ class CommentsPager {
 	 */
 	private function addUserRatingJoin( $builder ) {
 		if ( $this->currentActor !== null ) {
-			$builder->leftJoin( 'com_rating', 'cr', [
-				'cr_comment = c.c_id',
-				'cr_actor' => $this->currentActor
+			$builder->leftJoin( 'yappin_rating', 'cr', [
+				'yr_comment = c.yap_id',
+				'yr_actor' => $this->currentActor
 			] )
 				->useIndex( 'PRIMARY' )
 				->select( 'cr.*' );
@@ -182,8 +182,8 @@ class CommentsPager {
 	 * @param SelectQueryBuilder $builder
 	 */
 	private function addActorJoin( $builder ) {
-		// Imported comments have c_actor 0. Use left join so that they are not left out.
-		$builder->leftJoin( 'actor', null, 'actor_id = c_actor' )
+		// Imported comments have yap_actor 0. Use left join so that they are not left out.
+		$builder->leftJoin( 'actor', null, 'actor_id = yap_actor' )
 			->select( [ 'actor_id', 'actor_name', 'actor_user' ] );
 	}
 
@@ -195,16 +195,16 @@ class CommentsPager {
 	 */
 	public function fetchResultsForPage( $pageId, $includeChildren ) {
 		$conds = [
-			'c_page' => $pageId,
-			'c_parent' => null
+			'yap_page' => $pageId,
+			'yap_parent' => null
 		];
 
 		if ( !$this->includeDeleted ) {
-			$conds[] = 'c_deleted_actor IS NULL';
+			$conds[] = 'yap_deleted_actor IS NULL';
 		}
 
 		if ( $this->filterByActor !== null ) {
-			$conds[ 'c_actor' ] = $this->filterByActor;
+			$conds[ 'yap_actor' ] = $this->filterByActor;
 		}
 
 		$opts = [
@@ -217,20 +217,20 @@ class CommentsPager {
 			$childConds = [];
 
 			if ( !$this->includeDeleted ) {
-				$childConds[] = 'c_deleted_actor IS NULL';
+				$childConds[] = 'yap_deleted_actor IS NULL';
 			}
 
 			$childSelect = $this->db->newSelectQueryBuilder()
 				->select( 'c.*' )
 				->from( Comment::TABLE_NAME, 'c' )
 				->join( $this->db->newSelectQueryBuilder()
-					->select( 'c_id' )
+					->select( 'yap_id' )
 					->table( Comment::TABLE_NAME )
 					->where( $conds )
 					->limit( $this->limit )
 					->options( $opts ),
 					'p',
-					[ 'c.c_parent = p.c_id' ]
+					[ 'c.yap_parent = p.yap_id' ]
 				)
 				->where( $childConds );
 
@@ -309,11 +309,11 @@ class CommentsPager {
 		foreach ( $res as $row ) {
 			$user = $this->actorStore->newActorFromRow( $row );
 			$c = $this->commentFactory->newFromRow( $row, $user );
-			if ( $row->c_parent === null ) {
+			if ( $row->yap_parent === null ) {
 				if ( $parentsSeen === $this->limit ) {
 					// This is the extra row we queried for to work out if there's more rows that can be requested.
 					if ( str_starts_with( $this->sortMethod, 'sort_date' ) ) {
-						$this->continue = $row->c_timestamp;
+						$this->continue = $row->yap_timestamp;
 					} else {
 						$this->continue = $prevContinue + $this->limit;
 					}
@@ -337,11 +337,11 @@ class CommentsPager {
 		$conds = [];
 
 		if ( !$this->includeDeleted ) {
-			$conds[] = 'c_deleted_actor IS NULL';
+			$conds[] = 'yap_deleted_actor IS NULL';
 		}
 
 		if ( $this->filterByActor !== null ) {
-			$conds[ 'c_actor' ] = $this->filterByActor;
+			$conds[ 'yap_actor' ] = $this->filterByActor;
 		}
 
 		$opts = [
@@ -364,7 +364,7 @@ class CommentsPager {
 			->select( [ 'c.*', '(' . $this->db->newSelectQueryBuilder()
 				->select( 'COUNT(*)' )
 				->from( Comment::TABLE_NAME, 'c2' )
-				->where( [ 'c2.c_parent = c.c_id' ] )
+				->where( [ 'c2.yap_parent = c.yap_id' ] )
 				->getSQL() . ') as num_children'
 			] )
 			->from( Comment::TABLE_NAME, 'c' )
@@ -386,7 +386,7 @@ class CommentsPager {
 			if ( count( $comments ) === $this->limit ) {
 				// This is the extra row we queried for to work out if there's more rows that can be requested.
 				if ( str_starts_with( $this->sortMethod, 'sort_date' ) ) {
-					$this->continue = $row->c_timestamp;
+					$this->continue = $row->yap_timestamp;
 				} else {
 					$this->continue = $prevContinue + $this->limit;
 				}
@@ -409,12 +409,12 @@ class CommentsPager {
 		$conds = [];
 
 		if ( !$this->includeDeleted ) {
-			$conds[] = 'c_deleted_actor IS NULL';
+			$conds[] = 'yap_deleted_actor IS NULL';
 		}
 
 		$uqb = $this->db->newUnionQueryBuilder()->all();
 		$childConds = [
-			'c_parent' => $parentId
+			'yap_parent' => $parentId
 		];
 
 		$childSelect = $this->db->newSelectQueryBuilder()
@@ -430,7 +430,7 @@ class CommentsPager {
 		$parentSelect = $this->db->newSelectQueryBuilder()
 			->select( 'c.*' )
 			->from( Comment::TABLE_NAME, 'c' )
-			->where( [ 'c_id' => $parentId ] + $conds );
+			->where( [ 'yap_id' => $parentId ] + $conds );
 
 		$this->addPageJoin( $parentSelect );
 		$this->addUserRatingJoin( $parentSelect );
@@ -458,7 +458,7 @@ class CommentsPager {
 			// The comment object, returned as-is
 			'c' => $comment,
 			// The current user's rating, if we retrieved it
-			'ur' => isset( $row->cr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0,
+			'ur' => isset( $row->yr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0,
 			// Whether this comment belongs to the current actor
 			'ours' => $this->currentActor === $comment->mActorId,
 			// The page for the comment, only returned if there was no target page given to the pager instance

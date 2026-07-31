@@ -2,41 +2,41 @@
 -- Source: sql/tables.json
 -- Do not modify this file directly.
 -- See https://www.mediawiki.org/wiki/Manual:Schema_changes
-CREATE TABLE com_comment (
-  c_id SERIAL NOT NULL,
-  c_page INT NOT NULL,
-  c_actor BIGINT DEFAULT 0 NOT NULL,
-  c_timestamp TIMESTAMPTZ NOT NULL,
-  c_parent INT DEFAULT NULL,
-  c_deleted_actor BIGINT DEFAULT NULL,
-  c_rating INT DEFAULT 0 NOT NULL,
-  c_html TEXT NOT NULL,
-  c_wikitext TEXT NOT NULL,
-  c_edited_timestamp TIMESTAMPTZ DEFAULT NULL,
-  PRIMARY KEY(c_id)
+CREATE TABLE yappin_comment (
+  yap_id SERIAL NOT NULL,
+  yap_page INT NOT NULL,
+  yap_actor BIGINT DEFAULT 0 NOT NULL,
+  yap_timestamp TIMESTAMPTZ NOT NULL,
+  yap_parent INT DEFAULT NULL,
+  yap_deleted_actor BIGINT DEFAULT NULL,
+  yap_rating INT DEFAULT 0 NOT NULL,
+  yap_html TEXT NOT NULL,
+  yap_wikitext TEXT NOT NULL,
+  yap_edited_timestamp TIMESTAMPTZ DEFAULT NULL,
+  PRIMARY KEY(yap_id)
 );
 
-CREATE INDEX c_timestamp ON com_comment (c_timestamp);
+CREATE INDEX yap_timestamp ON yappin_comment (yap_timestamp);
 
-CREATE INDEX c_parent ON com_comment (c_parent);
+CREATE INDEX yap_parent ON yappin_comment (yap_parent);
 
-CREATE INDEX c_page_timestamp ON com_comment (c_page, c_timestamp);
+CREATE INDEX yap_page_timestamp ON yappin_comment (yap_page, yap_timestamp);
 
-CREATE INDEX c_actor_timestamp ON com_comment (c_actor, c_timestamp);
+CREATE INDEX yap_actor_timestamp ON yappin_comment (yap_actor, yap_timestamp);
 
-CREATE INDEX c_rating_timestamp ON com_comment (c_rating, c_timestamp);
+CREATE INDEX yap_rating_timestamp ON yappin_comment (yap_rating, yap_timestamp);
 
 
-CREATE TABLE com_rating (
-  cr_comment INT NOT NULL,
-  cr_actor BIGINT DEFAULT 0 NOT NULL,
-  cr_rating INT NOT NULL,
-  PRIMARY KEY(cr_comment, cr_actor)
+CREATE TABLE yappin_rating (
+  yr_comment INT NOT NULL,
+  yr_actor BIGINT DEFAULT 0 NOT NULL,
+  yr_rating INT NOT NULL,
+  PRIMARY KEY(yr_comment, yr_actor)
 );
 
 
-CREATE TABLE com_control (
-  cc_page INT NOT NULL,
-  cc_restriction SMALLINT NOT NULL,
-  PRIMARY KEY(cc_page)
+CREATE TABLE yappin_control (
+  yc_page INT NOT NULL,
+  yc_restriction SMALLINT NOT NULL,
+  PRIMARY KEY(yc_page)
 );

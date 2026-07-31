@@ -41,9 +41,9 @@ class CommentRating {
 	 */
 	public static function newFromRow( $row ) {
 		$obj = new CommentRating();
-		$obj->mCommentId = (int)$row->cr_comment;
-		$obj->mActorId = (int)$row->cr_actor;
-		$obj->mRating = (int)$row->cr_rating;
+		$obj->mCommentId = (int)$row->yr_comment;
+		$obj->mActorId = (int)$row->yr_actor;
+		$obj->mRating = (int)$row->yr_rating;
 
 		return $obj;
 	}
@@ -70,8 +70,8 @@ class CommentRating {
 
 		$row = $dbr->newSelectQueryBuilder()
 			->select( '*' )
-			->from( 'com_rating' )
-			->where( [ 'cr_comment' => $comment, 'cr_actor' => $actor ] )
+			->from( 'yappin_rating' )
+			->where( [ 'yr_comment' => $comment, 'yr_actor' => $actor ] )
 			->caller( __METHOD__ )
 			->fetchRow();
 
@@ -154,23 +154,23 @@ class CommentRating {
 	 */
 	public function save() {
 		$prev = $this->dbw->newSelectQueryBuilder()
-			->select( 'cr_rating' )
-			->table( 'com_rating' )
-			->where( [ 'cr_actor' => $this->mActorId, 'cr_comment' => $this->mCommentId ] )
+			->select( 'yr_rating' )
+			->table( 'yappin_rating' )
+			->where( [ 'yr_actor' => $this->mActorId, 'yr_comment' => $this->mCommentId ] )
 			->caller( __METHOD__ )->fetchField();
 
 		$row = [
-			'cr_comment' => $this->mCommentId,
-			'cr_actor' => $this->mActorId,
-			'cr_rating' => $this->mRating
+			'yr_comment' => $this->mCommentId,
+			'yr_actor' => $this->mActorId,
+			'yr_rating' => $this->mRating
 		];
 
 		$this->dbw->newInsertQueryBuilder()
-			->insertInto( 'com_rating' )
+			->insertInto( 'yappin_rating' )
 			->row( $row )
 			->onDuplicateKeyUpdate()
-			->uniqueIndexFields( [ 'cr_comment', 'cr_actor' ] )
-			->set( [ 'cr_rating' => $this->mRating ] )
+			->uniqueIndexFields( [ 'yr_comment', 'yr_actor' ] )
+			->set( [ 'yr_rating' => $this->mRating ] )
 			->caller( __METHOD__ )
 			->execute();
 

@@ -116,10 +116,10 @@ class SpecialCommentControl extends SpecialPage {
 
 		$res = $dbr->newSelectQueryBuilder()->select(
 			[
-				'cc_page',
-				'cc_restriction'
+				'yc_page',
+				'yc_restriction'
 			]
-		)->from( 'com_control' )->caller( __METHOD__ )->fetchResultSet();
+		)->from( 'yappin_control' )->caller( __METHOD__ )->fetchResultSet();
 
 		if ( $res->numRows() === 0 ) {
 			return;
@@ -130,9 +130,9 @@ class SpecialCommentControl extends SpecialPage {
 		$out->addHTML( '<ul>' );
 
 		foreach ( $res as $row ) {
-			$title = Title::newFromID( $row->cc_page );
+			$title = Title::newFromID( $row->yc_page );
 			if ( $title ) {
-				$status = CommentControlStatus::from( (int)$row->cc_restriction );
+				$status = CommentControlStatus::from( (int)$row->yc_restriction );
 				$statusMsg = $this->msg( 'yappin-commentcontrol-status-' . commentControlStatusToKey( $status ) )
 								  ->escaped();
 
@@ -152,10 +152,10 @@ class SpecialCommentControl extends SpecialPage {
 		$id = $title->getArticleID();
 
 		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
-		$cond = [ 'cc_page' => $id ];
+		$cond = [ 'yc_page' => $id ];
 		$res = $dbr->newSelectQueryBuilder()
-				   ->select( [ "cc_restriction" ] )
-				   ->from( 'com_control' )
+				   ->select( [ "yc_restriction" ] )
+				   ->from( 'yappin_control' )
 				   ->where( $cond )
 				   ->caller( __METHOD__ )
 				   ->fetchResultSet()
@@ -165,31 +165,31 @@ class SpecialCommentControl extends SpecialPage {
 			return CommentControlStatus::ENABLED;
 		}
 
-		return CommentControlStatus::from( $res['cc_restriction'] );
+		return CommentControlStatus::from( $res['yc_restriction'] );
 	}
 
 	private function setControlStatus( Title $title, CommentControlStatus $status ): void {
 		$id = $title->getArticleID();
 		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
 		if ( $status === CommentControlStatus::ENABLED ) {
-			$dbw->newDeleteQueryBuilder()->deleteFrom( 'com_control' )->where( [
-				'cc_page' => $id,
+			$dbw->newDeleteQueryBuilder()->deleteFrom( 'yappin_control' )->where( [
+				'yc_page' => $id,
 			] )->caller( __METHOD__ )->execute();
 		} else {
 			$values = [
-				'cc_page' => $id,
-				'cc_restriction' => $status->value,
+				'yc_page' => $id,
+				'yc_restriction' => $status->value,
 			];
 			$dbw->newInsertQueryBuilder()
-				->insertInto( 'com_control' )
+				->insertInto( 'yappin_control' )
 				->set( $values )
 				->row( $values )
 				->onDuplicateKeyUpdate()
-				->uniqueIndexFields( [ 'cc_page' ] )
+				->uniqueIndexFields( [ 'yc_page' ] )
 				->caller( __METHOD__ )
 				->execute();
 		}
-		$logEntry = new ManualLogEntry( 'comments', 'control' );
+		$logEntry = new ManualLogEntry( 'yappin', 'control' );
 		$logEntry->setPerformer( $this->getUser() );
 		$logEntry->setTarget( $title );
 		$logEntry->setParameters( [

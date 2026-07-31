@@ -1,10 +1,10 @@
 [
 	{
-		"name": "com_comment",
+		"name": "yappin_comment",
 		"comment": "Every comment on a wiki page creates a comment row.",
 		"columns": [
 			{
-				"name": "c_id",
+				"name": "yap_id",
 				"comment": "Unique ID to identify each comment",
 				"type": "integer",
 				"options": {
@@ -14,7 +14,7 @@
 				}
 			},
 			{
-				"name": "c_page",
+				"name": "yap_page",
 				"comment": "Key to page.page_id. This should never be invalid",
 				"type": "integer",
 				"options": {
@@ -23,7 +23,7 @@
 				}
 			},
 			{
-				"name": "c_actor",
+				"name": "yap_actor",
 				"comment": "Key to actor.actor_id of the user or IP who made this comment",
 				"type": "bigint",
 				"options": {
@@ -33,7 +33,7 @@
 				}
 			},
 			{
-				"name": "c_timestamp",
+				"name": "yap_timestamp",
 				"comment": "Timestamp of when the comment was created",
 				"type": "mwtimestamp",
 				"options": {
@@ -41,8 +41,8 @@
 				}
 			},
 			{
-				"name": "c_parent",
-				"comment": "If this comment is a response to another comment, this is a key to that comment's c_id",
+				"name": "yap_parent",
+				"comment": "If this comment is a response to another comment, this is a key to that comment's yap_id",
 				"type": "integer",
 				"options": {
 					"unsigned": true,
@@ -50,7 +50,7 @@
 				}
 			},
 			{
-				"name": "c_deleted_actor",
+				"name": "yap_deleted_actor",
 				"comment": "ID of the actor who deleted this comment",
 				"type": "bigint",
 				"options": {
@@ -59,7 +59,7 @@
 				}
 			},
 			{
-				"name": "c_rating",
+				"name": "yap_rating",
 				"comment": "The comment's current rating. Not intended to be an accurate copy of SUM(*)",
 				"type": "integer",
 				"options": {
@@ -69,7 +69,7 @@
 				}
 			},
 			{
-				"name": "c_html",
+				"name": "yap_html",
 				"comment": "Parsed HTML of the comment, generated at the time the comment was saved/edited",
 				"type": "blob",
 				"options": {
@@ -78,7 +78,7 @@
 				}
 			},
 			{
-				"name": "c_wikitext",
+				"name": "yap_wikitext",
 				"comment": "Wikitext of the comment, used for populating the textarea when the comment is edited",
 				"type": "blob",
 				"options": {
@@ -87,7 +87,7 @@
 				}
 			},
 			{
-				"name": "c_edited_timestamp",
+				"name": "yap_edited_timestamp",
 				"comment": "Timestamp of when the comment was last edited",
 				"type": "mwtimestamp",
 				"options": {
@@ -97,55 +97,55 @@
 		],
 		"indexes": [
 			{
-				"name": "c_timestamp",
+				"name": "yap_timestamp",
 				"columns": [
-					"c_timestamp"
+					"yap_timestamp"
 				],
 				"unique": false
 			},
 			{
-				"name": "c_parent",
+				"name": "yap_parent",
 				"columns": [
-					"c_parent"
+					"yap_parent"
 				],
 				"unique": false
 			},
 			{
-				"name": "c_page_timestamp",
+				"name": "yap_page_timestamp",
 				"columns": [
-					"c_page",
-					"c_timestamp"
+					"yap_page",
+					"yap_timestamp"
 				],
 				"unique": false
 			},
 			{
-				"name": "c_actor_timestamp",
+				"name": "yap_actor_timestamp",
 				"columns": [
-					"c_actor",
-					"c_timestamp"
+					"yap_actor",
+					"yap_timestamp"
 				],
 				"unique": false
 			},
 			{
-				"name": "c_rating_timestamp",
+				"name": "yap_rating_timestamp",
 				"columns": [
-					"c_rating",
-					"c_timestamp"
+					"yap_rating",
+					"yap_timestamp"
 				],
 				"unique": false
 			}
 		],
 		"pk": [
-			"c_id"
+			"yap_id"
 		]
 	},
 	{
-		"name": "com_rating",
+		"name": "yappin_rating",
 		"comment": "A row for each user's interaction (upvote/downvote) with an individual comment",
 		"columns": [
 			{
-				"name": "cr_comment",
-				"comment": "Key to comment.c_id",
+				"name": "yr_comment",
+				"comment": "Key to yappin_comment.yap_id",
 				"type": "integer",
 				"options": {
 					"unsigned": true,
@@ -153,7 +153,7 @@
 				}
 			},
 			{
-				"name": "cr_actor",
+				"name": "yr_actor",
 				"comment": "Key to actor.actor_id of the user or IP who made this rating",
 				"type": "bigint",
 				"options": {
@@ -163,7 +163,7 @@
 				}
 			},
 			{
-				"name": "cr_rating",
+				"name": "yr_rating",
 				"comment": "Integer representation of the rating (-1 or 1)",
 				"type": "integer",
 				"options": {
@@ -173,16 +173,16 @@
 		],
 		"indexes": [],
 		"pk": [
-			"cr_comment",
-			"cr_actor"
+			"yr_comment",
+			"yr_actor"
 		]
 	},
 	{
-		"name": "com_control",
+		"name": "yappin_control",
 		"comment": "A table for restricting comments on designated pages",
 		"columns": [
 			{
-				"name": "cc_page",
+				"name": "yc_page",
 				"comment": "Key to page.page_id. This should never be invalid",
 				"type": "integer",
 				"options": {
@@ -191,7 +191,7 @@
 				}
 			},
 			{
-				"name": "cc_restriction",
+				"name": "yc_restriction",
 				"comment": "Restriction status. 0 for unrestricted. 1 for no new comments allowed. 2 for comments completely disabled and hidden.",
 				"type": "mwtinyint",
 				"options": {
@@ -202,7 +202,7 @@
 		],
 		"indexes": [],
 		"pk": [
-			"cc_page"
+			"yc_page"
 		]
 	}
 ]

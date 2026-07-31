@@ -2,36 +2,36 @@
 -- Source: sql/tables.json
 -- Do not modify this file directly.
 -- See https://www.mediawiki.org/wiki/Manual:Schema_changes
-CREATE TABLE /*_*/com_comment (
-  c_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
-  c_page INT UNSIGNED NOT NULL,
-  c_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
-  c_timestamp BINARY(14) NOT NULL,
-  c_parent INT UNSIGNED DEFAULT NULL,
-  c_deleted_actor BIGINT UNSIGNED DEFAULT NULL,
-  c_rating INT DEFAULT 0 NOT NULL,
-  c_html MEDIUMBLOB NOT NULL,
-  c_wikitext MEDIUMBLOB NOT NULL,
-  c_edited_timestamp BINARY(14) DEFAULT NULL,
-  INDEX c_timestamp (c_timestamp),
-  INDEX c_parent (c_parent),
-  INDEX c_page_timestamp (c_page, c_timestamp),
-  INDEX c_actor_timestamp (c_actor, c_timestamp),
-  INDEX c_rating_timestamp (c_rating, c_timestamp),
-  PRIMARY KEY(c_id)
+CREATE TABLE /*_*/yappin_comment (
+  yap_id INT UNSIGNED AUTO_INCREMENT NOT NULL,
+  yap_page INT UNSIGNED NOT NULL,
+  yap_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
+  yap_timestamp BINARY(14) NOT NULL,
+  yap_parent INT UNSIGNED DEFAULT NULL,
+  yap_deleted_actor BIGINT UNSIGNED DEFAULT NULL,
+  yap_rating INT DEFAULT 0 NOT NULL,
+  yap_html MEDIUMBLOB NOT NULL,
+  yap_wikitext MEDIUMBLOB NOT NULL,
+  yap_edited_timestamp BINARY(14) DEFAULT NULL,
+  INDEX yap_timestamp (yap_timestamp),
+  INDEX yap_parent (yap_parent),
+  INDEX yap_page_timestamp (yap_page, yap_timestamp),
+  INDEX yap_actor_timestamp (yap_actor, yap_timestamp),
+  INDEX yap_rating_timestamp (yap_rating, yap_timestamp),
+  PRIMARY KEY(yap_id)
 ) /*$wgDBTableOptions*/;
 
 
-CREATE TABLE /*_*/com_rating (
-  cr_comment INT UNSIGNED NOT NULL,
-  cr_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
-  cr_rating INT NOT NULL,
-  PRIMARY KEY(cr_comment, cr_actor)
+CREATE TABLE /*_*/yappin_rating (
+  yr_comment INT UNSIGNED NOT NULL,
+  yr_actor BIGINT UNSIGNED DEFAULT 0 NOT NULL,
+  yr_rating INT NOT NULL,
+  PRIMARY KEY(yr_comment, yr_actor)
 ) /*$wgDBTableOptions*/;
 
 
-CREATE TABLE /*_*/com_control (
-  cc_page INT UNSIGNED NOT NULL,
-  cc_restriction TINYINT UNSIGNED NOT NULL,
-  PRIMARY KEY(cc_page)
+CREATE TABLE /*_*/yappin_control (
+  yc_page INT UNSIGNED NOT NULL,
+  yc_restriction TINYINT UNSIGNED NOT NULL,
+  PRIMARY KEY(yc_page)
 ) /*$wgDBTableOptions*/;

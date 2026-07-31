@@ -15,7 +15,7 @@ class RemoveAllComments extends Maintenance {
 	public function execute(): void {
 		$dbw = $this->getPrimaryDB();
 
-		foreach ( [ 'com_rating', 'com_comment', 'com_control' ] as $table ) {
+		foreach ( [ 'yappin_rating', 'yappin_comment', 'yappin_control' ] as $table ) {
 			$dbw->newDeleteQueryBuilder()
 				->deleteFrom( $table )
 				->where( '1=1' )

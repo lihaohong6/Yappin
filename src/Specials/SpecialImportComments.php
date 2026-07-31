@@ -139,7 +139,7 @@ class SpecialImportComments extends FormSpecialPage {
 
 			if ( $pageImported > 0 ) {
 				// Log the import
-				$logEntry = new ManualLogEntry( 'comments', 'import' );
+				$logEntry = new ManualLogEntry( 'yappin', 'import' );
 				$logEntry->setPerformer( $this->getUser() );
 				$logEntry->setTarget( $title );
 				$logEntry->setParameters( [
@@ -192,12 +192,12 @@ class SpecialImportComments extends FormSpecialPage {
 		// Comment deduplication is done through timestamps
 		$existingTimestamps = [];
 		if ( $skipExisting ) {
-			$cond = [ "c_page" => $pageId ];
-			$rows = $this->dbr->newSelectQueryBuilder()->select( [ "c_timestamp" ] )->from( "com_comment" )->where(
+			$cond = [ "yap_page" => $pageId ];
+			$rows = $this->dbr->newSelectQueryBuilder()->select( [ "yap_timestamp" ] )->from( "yappin_comment" )->where(
 				$cond
 			)->fetchResultSet();
 			foreach ( $rows as $row ) {
-				$existingTimestamps[$row->c_timestamp] = true;
+				$existingTimestamps[$row->yap_timestamp] = true;
 			}
 		}
 
@@ -242,17 +242,17 @@ class SpecialImportComments extends FormSpecialPage {
 
 				// Note that we should never use the old comment id.
 				$row = [
-					'c_page' => $pageId,
-					'c_actor' => $actorId,
-					'c_parent' => $parentId,
-					'c_timestamp' => $dbw->timestamp( $commentData['timestamp'] ),
-					'c_edited_timestamp' => isset( $commentData['editedTimestamp'] ) ? $dbw->timestamp(
+					'yap_page' => $pageId,
+					'yap_actor' => $actorId,
+					'yap_parent' => $parentId,
+					'yap_timestamp' => $dbw->timestamp( $commentData['timestamp'] ),
+					'yap_edited_timestamp' => isset( $commentData['editedTimestamp'] ) ? $dbw->timestamp(
 						$commentData['editedTimestamp']
 					) : null,
-					'c_deleted_actor' => null,
-					'c_rating' => 0,
-					'c_wikitext' => $wikitext,
-					'c_html' => $html,
+					'yap_deleted_actor' => null,
+					'yap_rating' => 0,
+					'yap_wikitext' => $wikitext,
+					'yap_html' => $html,
 				];
 
 				// Insert the comment

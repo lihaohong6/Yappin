@@ -17,7 +17,7 @@ use Wikimedia\Rdbms\IDatabase;
 use MediaWiki\Content\WikitextContent;
 
 class Comment {
-	public const TABLE_NAME = 'com_comment';
+	public const TABLE_NAME = 'yappin_comment';
 
 	/** @var int|null */
 	public $mId = null;
@@ -330,14 +330,14 @@ class Comment {
 	public function incrementRatingCount( $amount = 1 ) {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
-			->set( [ 'c_rating=c_rating+' . $amount ] )
-			->where( [ 'c_id' => $this->mId ] )
+			->set( [ 'yap_rating=yap_rating+' . $amount ] )
+			->where( [ 'yap_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
 		$this->mRating = (int)$this->dbw->newSelectQueryBuilder()
-			->select( 'c_rating' )
+			->select( 'yap_rating' )
 			->table( $this::TABLE_NAME )
-			->where( [ 'c_id' => $this->mId ] )
+			->where( [ 'yap_id' => $this->mId ] )
 			->caller( __METHOD__ )->fetchField();
 	}
 
@@ -352,14 +352,14 @@ class Comment {
 	public function decrementRatingCount( $amount = 1 ) {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
-			->set( [ 'c_rating=c_rating-' . $amount ] )
-			->where( [ 'c_id' => $this->mId ] )
+			->set( [ 'yap_rating=yap_rating-' . $amount ] )
+			->where( [ 'yap_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
 		$this->mRating = (int)$this->dbw->newSelectQueryBuilder()
-			->select( 'c_rating' )
+			->select( 'yap_rating' )
 			->table( $this::TABLE_NAME )
-			->where( [ 'c_id' => $this->mId ] )
+			->where( [ 'yap_id' => $this->mId ] )
 			->caller( __METHOD__ )->fetchField();
 	}
 
@@ -471,15 +471,15 @@ class Comment {
 		}
 
 		$row = [
-			'c_page' => $this->mPageId,
-			'c_actor' => $this->mActorId,
-			'c_parent' => $this->mParentId,
-			'c_timestamp' => $this->dbw->timestamp( $this->mCreatedTimestamp ),
-			'c_deleted_actor' => $this->mDeletedActorId,
-			'c_rating' => $this->mRating,
-			'c_html' => $this->mHtml,
-			'c_wikitext' => $this->mWikitext,
-			'c_edited_timestamp' => $this->dbw->timestampOrNull( $this->mEditedTimestamp )
+			'yap_page' => $this->mPageId,
+			'yap_actor' => $this->mActorId,
+			'yap_parent' => $this->mParentId,
+			'yap_timestamp' => $this->dbw->timestamp( $this->mCreatedTimestamp ),
+			'yap_deleted_actor' => $this->mDeletedActorId,
+			'yap_rating' => $this->mRating,
+			'yap_html' => $this->mHtml,
+			'yap_wikitext' => $this->mWikitext,
+			'yap_edited_timestamp' => $this->dbw->timestampOrNull( $this->mEditedTimestamp )
 		];
 
 		if ( !$isUpdate ) {
@@ -497,7 +497,7 @@ class Comment {
 			$this->dbw->newUpdateQueryBuilder()
 				->table( self::TABLE_NAME )
 				->set( $row )
-				->where( [ 'c_id' => $this->mId ] )
+				->where( [ 'yap_id' => $this->mId ] )
 				->caller( __METHOD__ )
 				->execute();
 		}

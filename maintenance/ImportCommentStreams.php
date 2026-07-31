@@ -43,12 +43,12 @@ class ImportCommentStreams extends Maintenance {
 		$existingKeys = [];
 		if ( !$force ) {
 			$existingRows = $dbr->newSelectQueryBuilder()
-								->select( [ 'c_page', 'c_timestamp' ] )
-								->from( 'com_comment' )
+								->select( [ 'yap_page', 'yap_timestamp' ] )
+								->from( 'yappin_comment' )
 								->caller( __METHOD__ )
 								->fetchResultSet();
 			foreach ( $existingRows as $er ) {
-				$existingKeys[$er->c_page . ':' . $er->c_timestamp] = true;
+				$existingKeys[$er->yap_page . ':' . $er->yap_timestamp] = true;
 			}
 		}
 
@@ -191,9 +191,9 @@ class ImportCommentStreams extends Maintenance {
 			$yappinId = $csToYappin[$csCommentId];
 
 			$voteRowsToInsert[] = [
-				'cr_comment' => $yappinId,
-				'cr_actor'   => (int)$voteRow->actor_id,
-				'cr_rating'  => (int)$voteRow->cst_v_vote,
+				'yr_comment' => $yappinId,
+				'yr_actor'   => (int)$voteRow->actor_id,
+				'yr_rating'  => (int)$voteRow->cst_v_vote,
 			];
 			$affectedYappinIds[] = $yappinId;
 			$importedVotes++;
@@ -203,22 +203,22 @@ class ImportCommentStreams extends Maintenance {
 			$dbw = $this->getPrimaryDB();
 
 			$dbw->newInsertQueryBuilder()
-				->insertInto( 'com_rating' )
+				->insertInto( 'yappin_rating' )
 				->rows( $voteRowsToInsert )
 				->caller( __METHOD__ )
 				->execute();
 
 			foreach ( array_unique( $affectedYappinIds ) as $yappinId ) {
 				$sum = (int)$dbw->newSelectQueryBuilder()
-								->select( 'SUM(cr_rating)' )
-								->from( 'com_rating' )
-								->where( [ 'cr_comment' => $yappinId ] )
+								->select( 'SUM(yr_rating)' )
+								->from( 'yappin_rating' )
+								->where( [ 'yr_comment' => $yappinId ] )
 								->caller( __METHOD__ )
 								->fetchField();
 				$dbw->newUpdateQueryBuilder()
-					->update( 'com_comment' )
-					->set( [ 'c_rating' => $sum ] )
-					->where( [ 'c_id' => $yappinId ] )
+					->update( 'yappin_comment' )
+					->set( [ 'yap_rating' => $sum ] )
+					->where( [ 'yap_id' => $yappinId ] )
 					->caller( __METHOD__ )
 					->execute();
 			}

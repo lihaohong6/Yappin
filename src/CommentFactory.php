@@ -33,27 +33,27 @@ class CommentFactory {
 	 */
 	public function newFromRow( $row, $user = null ) {
 		$comment = new Comment();
-		$comment->mId = (int)$row->c_id;
-		$comment->mPageId = (int)$row->c_page;
+		$comment->mId = (int)$row->yap_id;
+		$comment->mPageId = (int)$row->yap_page;
 
 		if ( $user !== null && $user->getId() !== 0 ) {
-			$comment->setActor( $user, (int)$row->c_actor );
+			$comment->setActor( $user, (int)$row->yap_actor );
 		} else {
-			$comment->mActorId = (int)$row->c_actor;
+			$comment->mActorId = (int)$row->yap_actor;
 		}
 
-		$parentId = (int)$row->c_parent;
+		$parentId = (int)$row->yap_parent;
 		if ( !empty( $parentId ) ) {
 			$comment->mParentId = $parentId;
 		}
 
-		$comment->mCreatedTimestamp = wfTimestamp( TS_MW, $row->c_timestamp );
-		$comment->mEditedTimestamp = wfTimestampOrNull( TS_MW, $row->c_edited_timestamp );
+		$comment->mCreatedTimestamp = wfTimestamp( TS_MW, $row->yap_timestamp );
+		$comment->mEditedTimestamp = wfTimestampOrNull( TS_MW, $row->yap_edited_timestamp );
 
-		$comment->mDeletedActorId = $row->c_deleted_actor;
-		$comment->mWikitext = (string)$row->c_wikitext;
-		$comment->mHtml = (string)$row->c_html;
-		$comment->mRating = (int)$row->c_rating;
+		$comment->mDeletedActorId = $row->yap_deleted_actor;
+		$comment->mWikitext = (string)$row->yap_wikitext;
+		$comment->mHtml = (string)$row->yap_html;
+		$comment->mRating = (int)$row->yap_rating;
 
 		return $comment;
 	}
@@ -68,8 +68,8 @@ class CommentFactory {
 		$db = $this->lbFactory->getPrimaryDatabase();
 		$row = $db->newSelectQueryBuilder()
 			->fields( '*' )
-			->from( 'com_comment' )
-			->where( [ 'c_id' => $id ] )
+			->from( 'yappin_comment' )
+			->where( [ 'yap_id' => $id ] )
 			->caller( __METHOD__ )
 			->fetchRow();
 
