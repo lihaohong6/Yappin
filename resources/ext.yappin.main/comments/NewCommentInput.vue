@@ -181,17 +181,27 @@ module.exports = exports = defineComponent( {
 			const $input = $( this.$refs.input );
 			if ( !this.useVE ) {
 				const ping = this.$props.ping;
-				let val = '';
+				let text = '';
 				if ( ping !== "" ) {
 					if (ping.startsWith("imported>")) {
-						val = `@${ping}: `;
+						text = `@${ping}: `;
 					} else {
-						val = `@[[User:${ping}|${ping}]]: `;
+						text = `@[[User:${ping}|${ping}]]: `;
 					}
 				}
-				$input.val( val );
+				$input.val( text );
 				this.$data.showPreview = false;
 				this.$data.previewHtml = '';
+
+				if ( val === true ) {
+					// Wait for the DOM update before focusing.
+					this.$nextTick( () => {
+						const input = this.$refs.input;
+						input.focus();
+						// Put the cursor after the ping prefix, if there is one
+						input.setSelectionRange( text.length, text.length );
+					} );
+				}
 			} else if ( val === true && this.$data.ve === null ) {
 				// If a user needs to be explicitly pinged due to the lack of nested replies, fill in the ping
 				// as a link in VE
