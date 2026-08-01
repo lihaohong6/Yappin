@@ -51,11 +51,6 @@ class GeneralHookHandlers implements
 			return;
 		}
 
-		// Do not run on the main page unless the config option is set
-		if ( !$this->config->get( 'YappinShowOnMainPage' ) && $title->isMainPage() ) {
-			return;
-		}
-
 		Utils::loadCommentsModule( $out, $this->config );
 	}
 

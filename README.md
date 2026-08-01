@@ -32,7 +32,6 @@ If the wiki previously ran a version of this extension that used the `com_*` tab
 ## Configuration
 | Variable                    | Description                                                                                                                                                              | Default                |
 |-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------|
-| $wgYappinShowOnMainPage     | If enabled, show comments on the main page                                                                                                                               | `false`                |
 | $wgYappinResultsPerPage     | How many comments to load at a time by default. This value cannot be higher than 100 for performance reasons.                                                            | `50`                   |
 | $wgYappinReadOnly           | If enabled, new comments cannot be posted and existing comments cannot be edited                                                                                         | `false`                |
 | $wgYappinUseAbuseFilter     | If enabled, run comments through [AbuseFilter](https://www.mediawiki.org/wiki/Extension:AbuseFilter)                                                                     | `true`                 |

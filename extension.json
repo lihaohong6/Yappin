@@ -31,9 +31,6 @@
 	},
 	"config_prefix": "wgYappin",
 	"config": {
-		"ShowOnMainPage": {
-			"value": false
-		},
 		"ShowUPV2Avatars": {
 			"value": false
 		},

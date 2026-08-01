@@ -80,9 +80,6 @@ class Utils {
 		if ( !$title->exists() ) {
 			return false;
 		}
-		if ( !$config->get( 'YappinShowOnMainPage' ) && $title->isMainPage() ) {
-			return false;
-		}
 
 		return true;
 	}
