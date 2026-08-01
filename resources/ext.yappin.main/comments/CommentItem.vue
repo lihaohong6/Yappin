@@ -85,7 +85,7 @@
 				:on-cancel="() => isWritingReply = false"
 			></new-comment-input>
 		</div>
-		<div class="comment-footer">
+		<div v-if="hasFooterContent" class="comment-footer">
 			<button
 				v-if="!isWritingReply && !comment.deleted"
 				class="comment-reply-button"
@@ -147,6 +147,15 @@ module.exports = exports = defineComponent( {
 		};
 	},
 	computed: {
+		/**
+		 * Whether the footer would render anything. Keeping the wrapper around while it is empty
+		 * (e.g. while a reply is being written) would add its margin below the input form.
+		 *
+		 * @returns {boolean}
+		 */
+		hasFooterContent() {
+			return ( !this.isWritingReply && !this.comment.deleted ) || this.comment.numChildren > 0;
+		},
 		rating() {
 			return mw.message( 'yappin-rating',
 				mw.language.convertNumber( this.comment.rating ),

@@ -93,6 +93,11 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		flex: 1 100%;
 	}
 
+	// Top level input
+	> .comment-input-container {
+		margin-bottom: 0.5em;
+	}
+
 	.ext-comments-comments-list {
 		display: flex;
 		flex-direction: column;
@@ -199,17 +204,17 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 				color: var(--comments-button-hover);
 			}
 		}
+	}
 
-		.comment-preview {
-			margin-top: 4px;
+	.comment-preview {
+		margin-top: 4px;
 
-			.comment-preview-content {
-				// In case the preview is empty
-				min-height: 1em;
-				border: 1px solid var(--comments-preview-border);
-				padding: 4px 8px;
-				background-color: var(--comments-preview-background);
-			}
+		.comment-preview-content {
+			// In case the preview is empty
+			min-height: 1em;
+			border: 1px solid var(--comments-preview-border);
+			padding: 4px 8px;
+			background-color: var(--comments-preview-background);
 		}
 	}
 
