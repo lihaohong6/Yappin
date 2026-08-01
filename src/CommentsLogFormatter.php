@@ -9,7 +9,7 @@ class CommentsLogFormatter extends LogFormatter {
 		$params = parent::getMessageParameters();
 		$type = $this->entry->getFullType();
 		if ( $type === 'yappin/control' ) {
-			$params[3] = wfMessage("yappin-commentcontrol-status-$params[3]")->inContentLanguage();
+			$params[3] = wfMessage( "yappin-commentcontrol-status-$params[3]" )->inContentLanguage();
 		}
 		return $params;
 	}

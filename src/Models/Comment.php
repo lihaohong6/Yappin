@@ -4,17 +4,17 @@ namespace MediaWiki\Extension\Yappin\Models;
 
 use InvalidArgumentException;
 use MediaWiki\Config\Config;
+use MediaWiki\Content\WikitextContent;
 use MediaWiki\Extension\AbuseFilter\AbuseFilterServices;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
-use MediaWiki\Parser\ParserOptions;
 use Telepedia\UserProfileV2\Avatar\UserProfileV2Avatar;
 use Wikimedia\Rdbms\IDatabase;
-use MediaWiki\Content\WikitextContent;
 
 class Comment {
 	public const TABLE_NAME = 'yappin_comment';
@@ -514,7 +514,7 @@ class Comment {
 		if ( $showAvatars && ExtensionRegistry::getInstance()->isLoaded( 'UserProfileV2' ) ) {
 			$userId = $this->getActor()->getId();
 			$avatar = new UserProfileV2Avatar( $userId );
-			$avatarUrl = $avatar->getAvatarUrl( ["raw" => true] ) ?? null;
+			$avatarUrl = $avatar->getAvatarUrl( [ "raw" => true ] ) ?? null;
 		}
 
 		return [

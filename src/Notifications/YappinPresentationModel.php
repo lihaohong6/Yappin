@@ -29,9 +29,9 @@ abstract class YappinPresentationModel extends EchoEventPresentationModel {
 		return $msg;
 	}
 
-	public function getBodyMessage(): bool | Message {
+	public function getBodyMessage(): bool|Message {
 		$message = $this->msg( 'notification-body-yappin' );
-		$message->params( $this->event->getExtraParam( 'wikitext', '' ));
+		$message->params( $this->event->getExtraParam( 'wikitext', '' ) );
 		return $message;
 	}
 }

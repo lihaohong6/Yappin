@@ -53,7 +53,7 @@ class ApiVoteComment extends SimpleHandler {
 
 		$user = $this->getAuthority()->getUser();
 
-//		if ( $comment->getUser()->getId() === $user->getId() ) {
+// if ( $comment->getUser()->getId() === $user->getId() ) {
 //			throw new HttpException( "Cannot vote on user's own comment", 400 );
 //		}
 

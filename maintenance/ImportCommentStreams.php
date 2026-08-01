@@ -245,7 +245,7 @@ class ImportCommentStreams extends Maintenance {
 	 * @param int $assocPageId page_id of the wiki page the comment belongs to
 	 * @param int|null $parentYappinId Yappin comment id of the parent (replies only)
 	 * @param int|null $logPageId page_id used in skip messages
-	 * @return int|null  Yappin comment id on success, null on skip
+	 * @return int|null Yappin comment id on success, null on skip
 	 */
 	private function importEntity(
 		stdClass $pageRow,

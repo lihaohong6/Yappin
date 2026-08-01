@@ -6,7 +6,6 @@ use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\CommentsPager;
 use MediaWiki\Extension\Yappin\Models\Comment;
-use MediaWiki\Extension\Yappin\Models\CommentRating;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;

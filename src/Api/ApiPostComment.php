@@ -3,14 +3,12 @@
 namespace MediaWiki\Extension\Yappin\Api;
 
 use MediaWiki\Config\Config;
-use MediaWiki\Extension\Notifications\Model\Event;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
 use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\MediaWikiServices;
-use MediaWiki\Notification\NotificationService;
 use MediaWiki\Notification\RecipientSet;
 use MediaWiki\Notification\Types\WikiNotification;
 use MediaWiki\Parser\ParserOptions;
@@ -102,8 +100,8 @@ class ApiPostComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-page-missing', $pageId ), 400 );
 		}
 
-		$commentEnabledOnPage = SpecialCommentControl::getControlStatus($page) === CommentControlStatus::ENABLED;
-		if ( !Utils::isCommentsEnabled( $this->config, $page ) || !$commentEnabledOnPage) {
+		$commentEnabledOnPage = SpecialCommentControl::getControlStatus( $page ) === CommentControlStatus::ENABLED;
+		if ( !Utils::isCommentsEnabled( $this->config, $page ) || !$commentEnabledOnPage ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400 );
 		}
