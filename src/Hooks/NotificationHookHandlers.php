@@ -9,6 +9,40 @@ use MediaWiki\Extension\Yappin\Notifications\ReplyPresentationModel;
 use MediaWiki\Extension\Yappin\Notifications\UserPagePresentationModel;
 
 class NotificationHookHandlers {
+	/**
+	 * Build the Echo notification definition shared by all Yappin notification types.
+	 *
+	 * @param string $presentationModel Class name of the presentation model to use
+	 * @return array
+	 */
+	private static function getNotificationArray( string $presentationModel ): array {
+		return [
+			'category' => 'yappin',
+			'group' => 'interactive',
+			'section' => 'message',
+			'bundle' => [
+				'web' => true,
+				'expandable' => true,
+			],
+			'presentation-model' => $presentationModel,
+			AttributeManager::ATTR_LOCATORS => [
+				[
+					[
+						UserLocator::class,
+						'locateFromEventExtra'
+					],
+					[ 'user' ]
+				]
+			],
+		];
+	}
+
+	/**
+	 * @param array &$notifications
+	 * @param array &$notificationCategories
+	 * @param array &$icons
+	 * @return void
+	 */
 	public static function onBeforeCreateEchoEvent(
 		&$notifications,
 		&$notificationCategories,
@@ -22,30 +56,8 @@ class NotificationHookHandlers {
 			'tooltip' => 'echo-pref-tooltip-yappin',
 		];
 
-		function getNotificationArray( $presentationModel ): array {
-			return [
-				'category' => 'yappin',
-				'group' => 'interactive',
-				'section' => 'message',
-				'bundle' => [
-					'web' => true,
-					'expandable' => true,
-				],
-				'presentation-model' => $presentationModel,
-				AttributeManager::ATTR_LOCATORS => [
-					[
-						[
-							UserLocator::class,
-							'locateFromEventExtra'
-						],
-						[ 'user' ]
-					]
-				],
-			];
-		}
-
-		$notifications['yappin-reply'] = getNotificationArray( ReplyPresentationModel::class );
-		$notifications['yappin-user-page'] = getNotificationArray( UserPagePresentationModel::class );
-		$notifications['yappin-mention'] = getNotificationArray( MentionPresentationModel::class );
+		$notifications['yappin-reply'] = self::getNotificationArray( ReplyPresentationModel::class );
+		$notifications['yappin-user-page'] = self::getNotificationArray( UserPagePresentationModel::class );
+		$notifications['yappin-mention'] = self::getNotificationArray( MentionPresentationModel::class );
 	}
 }

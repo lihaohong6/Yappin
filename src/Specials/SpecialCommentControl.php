@@ -15,6 +15,7 @@ class SpecialCommentControl extends SpecialPage {
 		parent::__construct( 'CommentControl', 'yappin-manage' );
 	}
 
+	/** @inheritDoc */
 	public function execute( $subPage ) {
 		$this->setHeaders();
 		$this->checkPermissions();
@@ -69,7 +70,7 @@ class SpecialCommentControl extends SpecialPage {
 
 	private function showPageControlForm( Title $title ) {
 		$out = $this->getOutput();
-		$out->setPageTitleMsg( wfMessage( 'yappin-commentcontrol-special-title' ) );
+		$out->setPageTitleMsg( $this->msg( 'yappin-commentcontrol-special-title' ) );
 		$out->addBacklinkSubtitle( $title );
 
 		$currentStatus = $this->getControlStatus( $title );

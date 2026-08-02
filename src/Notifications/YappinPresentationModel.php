@@ -13,7 +13,8 @@ abstract class YappinPresentationModel extends EchoEventPresentationModel {
 
 	public function getPrimaryLink(): array {
 		return [
-			'url' => $this->event->getTitle()->getLocalURL() . '?comment=' . $this->event->getExtraParam( 'comment_id' ),
+			'url' => $this->event->getTitle()->getLocalURL()
+				. '?comment=' . $this->event->getExtraParam( 'comment_id' ),
 			'label' => $this->msg( 'notification-link-text-view-comment' )->text(),
 		];
 	}

@@ -227,6 +227,7 @@ class Comment {
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 * @param string $html
+	 * @param bool $parse Whether to reparse the HTML into wikitext
 	 * @return Comment
 	 */
 	public function setHtml( $html, $parse = true ) {

@@ -9,6 +9,7 @@ use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\User\ActorStore;
 use Wikimedia\Message\MessageValue;
@@ -43,10 +44,10 @@ class ApiGetCommentById extends SimpleHandler {
 	}
 
 	/**
-	 * @param object{ c: Comment, ur: CommentRating, ours: bool } $r
+	 * @param array $r
 	 * @return array
 	 */
-	private function getCommentDataFromResult( $r ) {
+	private function getCommentDataFromResult( array $r ) {
 		return $r['c']->toArray() + [
 			'children' => [],
 			'userRating' => $r[ 'ur' ],
@@ -56,6 +57,7 @@ class ApiGetCommentById extends SimpleHandler {
 	}
 
 	/**
+	 * @return Response
 	 * @throws HttpException
 	 */
 	public function run() {
@@ -118,6 +120,7 @@ class ApiGetCommentById extends SimpleHandler {
 		] );
 	}
 
+	/** @inheritDoc */
 	public function getParamSettings() {
 		return [
 			'commentid' => [

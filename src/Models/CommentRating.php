@@ -127,7 +127,7 @@ class CommentRating {
 	 * Sets the user's rating of the comment (-1, 0, or 1)
 	 *
 	 * This method returns the current CommentRating object for easier chaining.
-	 * @param $rating
+	 * @param int $rating
 	 * @return $this
 	 */
 	public function setRating( $rating ) {

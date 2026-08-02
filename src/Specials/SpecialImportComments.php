@@ -33,6 +33,7 @@ class SpecialImportComments extends FormSpecialPage {
 		$this->userLookup = MediaWikiServices::getInstance()->getUserIdentityLookup();
 	}
 
+	/** @inheritDoc */
 	public function execute( $par ) {
 		$user = $this->getUser();
 		if ( !$this->userCanExecute( $user ) ) {
@@ -41,26 +42,28 @@ class SpecialImportComments extends FormSpecialPage {
 		parent::execute( $par );
 	}
 
+	/** @inheritDoc */
 	public function onSubmit( array $data ) {
 		// Get uploaded file
-		$upload = $_FILES['wpjsonfile'] ?? null;
+		$upload = $this->getRequest()->getUpload( 'wpjsonfile' );
 
 		// Check to make sure there is a file uploaded
-		if ( $upload === null || !$upload['name'] ) {
+		if ( !$upload->getName() ) {
 			return Status::newFatal( 'yappin-import-no-file' );
 		}
 
 		// Check for upload errors
-		if ( !empty( $upload['error'] ) ) {
-			return match ( $upload['error'] ) {
+		$error = $upload->getError();
+		if ( $error ) {
+			return match ( $error ) {
 				UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => Status::newFatal( 'yappin-import-file-too-large' ),
-				default => Status::newFatal( 'yappin-import-upload-error', $upload['error'] ),
+				default => Status::newFatal( 'yappin-import-upload-error', $error ),
 			};
 		}
 
 		// Read file
-		$fname = $upload['tmp_name'];
-		if ( !is_uploaded_file( $fname ) ) {
+		$fname = $upload->getTempName();
+		if ( !$fname || !is_uploaded_file( $fname ) ) {
 			return Status::newFatal( 'yappin-import-no-file' );
 		}
 
@@ -278,10 +281,12 @@ class SpecialImportComments extends FormSpecialPage {
 		];
 	}
 
+	/** @inheritDoc */
 	protected function alterForm( HTMLForm $form ) {
 		$form->setSubmitTextMsg( 'yappin-import-submit' );
 	}
 
+	/** @inheritDoc */
 	protected function getFormFields() {
 		return [
 			'jsonfile' => [
@@ -304,10 +309,12 @@ class SpecialImportComments extends FormSpecialPage {
 		];
 	}
 
+	/** @inheritDoc */
 	protected function getDisplayFormat() {
 		return 'ooui';
 	}
 
+	/** @inheritDoc */
 	protected function getGroupName() {
 		return 'pagetools';
 	}

@@ -6,6 +6,7 @@ use MediaWiki\Extension\Yappin\CommentsPager;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
@@ -48,10 +49,10 @@ class ApiGetAllComments extends SimpleHandler {
 	}
 
 	/**
-	 * @param object{ c: Comment, ur: CommentRating, ours: bool } $r
+	 * @param array $r
 	 * @return array
 	 */
-	private function getCommentDataFromResult( $r ) {
+	private function getCommentDataFromResult( array $r ) {
 		return $r['c']->toArray() + [
 			'children' => [],
 			'userRating' => $r[ 'ur' ],
@@ -62,6 +63,7 @@ class ApiGetAllComments extends SimpleHandler {
 	}
 
 	/**
+	 * @return Response
 	 * @throws HttpException
 	 */
 	public function run() {
@@ -167,6 +169,7 @@ class ApiGetAllComments extends SimpleHandler {
 		] );
 	}
 
+	/** @inheritDoc */
 	public function getParamSettings() {
 		return [
 			'pageid' => [

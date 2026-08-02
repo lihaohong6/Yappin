@@ -22,7 +22,9 @@ class ImportCommentStreams extends Maintenance {
 	public function __construct() {
 		parent::__construct();
 		$this->addDescription( 'Import comments from the CommentStreams extension into Yappin.' );
-		$this->addOption( 'force', 'Skip the duplicate-comment guard and the non-empty table check.', false, false, 'f' );
+		$this->addOption(
+			'force', 'Skip the duplicate-comment guard and the non-empty table check.', false, false, 'f'
+		);
 		$this->requireExtension( 'Yappin' );
 		$this->requireExtension( 'CommentStreams' );
 	}
@@ -291,7 +293,9 @@ class ImportCommentStreams extends Maintenance {
 
 		$dbr = $this->getDB( DB_REPLICA );
 		if ( !$force && isset( $existingKeys[$assocPageId . ':' . $dbr->timestamp( $createdTs )] ) ) {
-			$this->output( "  SKIP $entityLabel page_id=$logId: already imported (page $assocPageId, ts $createdTs)\n" );
+			$this->output(
+				"  SKIP $entityLabel page_id=$logId: already imported (page $assocPageId, ts $createdTs)\n"
+			);
 			return null;
 		}
 

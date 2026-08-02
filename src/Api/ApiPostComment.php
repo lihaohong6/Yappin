@@ -13,9 +13,9 @@ use MediaWiki\Notification\RecipientSet;
 use MediaWiki\Notification\Types\WikiNotification;
 use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\ParserOutputLinkTypes;
-use MediaWiki\Permissions\Authority;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
@@ -51,6 +51,7 @@ class ApiPostComment extends SimpleHandler {
 	}
 
 	/**
+	 * @return Response
 	 * @throws HttpException
 	 */
 	public function run() {
@@ -163,7 +164,7 @@ class ApiPostComment extends SimpleHandler {
 	}
 
 	/**
-	 * @param Authority $auth
+	 * @param UserIdentity $notifier
 	 * @param Comment|null $parent
 	 * @param Title $page
 	 * @param Comment $comment

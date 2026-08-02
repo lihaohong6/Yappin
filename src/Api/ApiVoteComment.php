@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
@@ -21,6 +22,7 @@ class ApiVoteComment extends SimpleHandler {
 	}
 
 	/**
+	 * @return Response
 	 * @throws HttpException
 	 */
 	public function run() {

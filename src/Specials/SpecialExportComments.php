@@ -29,12 +29,19 @@ class SpecialExportComments extends FormSpecialPage {
 		];
 	}
 
+	/** @inheritDoc */
 	public function onSubmit( array $data ) {
 		$this->getOutput()->disable();
 		$this->doExport( $data['includeDeleted'] );
 		return Status::newGood();
 	}
 
+	/**
+	 * Stream all comments to the client as a JSON attachment, then exit.
+	 *
+	 * @param bool $includeDeleted Whether to include soft-deleted comments
+	 * @return never
+	 */
 	private function doExport( $includeDeleted ) {
 		$response = $this->getRequest()->response();
 		$response->header( 'Content-Type: application/json; charset=utf-8' );
@@ -99,7 +106,8 @@ class SpecialExportComments extends FormSpecialPage {
 				'id' => (int)$row->yap_id,
 				'parentId' => $row->yap_parent ? (int)$row->yap_parent : null,
 				'timestamp' => wfTimestamp( TS_MW, $row->yap_timestamp ),
-				'editedTimestamp' => $row->yap_edited_timestamp ? wfTimestamp( TS_MW, $row->yap_edited_timestamp ) : null,
+				'editedTimestamp' => $row->yap_edited_timestamp
+					? wfTimestamp( TS_MW, $row->yap_edited_timestamp ) : null,
 				'wikitext' => $row->yap_wikitext,
 				'username' => $username
 			];
@@ -116,10 +124,12 @@ class SpecialExportComments extends FormSpecialPage {
 		exit;
 	}
 
+	/** @inheritDoc */
 	protected function getDisplayFormat() {
 		return 'ooui';
 	}
 
+	/** @inheritDoc */
 	protected function getGroupName() {
 		return 'pagetools';
 	}

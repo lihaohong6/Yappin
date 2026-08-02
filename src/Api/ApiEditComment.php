@@ -7,6 +7,7 @@ use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\User\ActorStore;
 use Wikimedia\Message\MessageValue;
@@ -29,6 +30,7 @@ class ApiEditComment extends SimpleHandler {
 	}
 
 	/**
+	 * @return Response
 	 * @throws HttpException
 	 */
 	public function run() {
@@ -39,6 +41,10 @@ class ApiEditComment extends SimpleHandler {
 		}
 	}
 
+	/**
+	 * @return Response
+	 * @throws HttpException
+	 */
 	private function runEditComment() {
 		$auth = $this->getAuthority();
 
@@ -98,6 +104,10 @@ class ApiEditComment extends SimpleHandler {
 		] );
 	}
 
+	/**
+	 * @return Response
+	 * @throws HttpException
+	 */
 	private function runDeleteComment() {
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();

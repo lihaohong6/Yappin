@@ -68,6 +68,7 @@ class GeneralHookHandlers implements
 		];
 	}
 
+	/** @inheritDoc */
 	public function onSidebarBeforeOutput( Skin $skin, &$sidebar ) {
 		$user = $skin->getUser();
 		if ( !$user ) {
