@@ -5,11 +5,14 @@ namespace MediaWiki\Extension\Yappin\Api;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Extension\Yappin\CommentHelperService;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Language\FormatterFactory;
 use MediaWiki\Message\Message;
+use MediaWiki\Rest\Handler\Helper\PageRestHelperFactory;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Status\StatusFormatter;
 use MediaWiki\Title\TitleFactory;
@@ -18,30 +21,24 @@ use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiPostComment extends SimpleHandler {
-	private TitleFactory $titleFactory;
-	private CommentFactory $commentFactory;
-	private Config $config;
-	private TempUserCreator $tempUserCreator;
 	private StatusFormatter $statusFormatter;
 
 	public function __construct(
-		TitleFactory $titleFactory,
-		CommentFactory $commentFactory,
-		Config $config,
-		TempUserCreator $tempUserCreator,
-		FormatterFactory $formatterFactory
+		private readonly TitleFactory $titleFactory,
+		private readonly CommentFactory $commentFactory,
+		private readonly Config $config,
+		private readonly TempUserCreator $tempUserCreator,
+		private readonly PageRestHelperFactory $pageRestHelperFactory,
+		private readonly CommentHelperService $commentHelperService,
+		readonly FormatterFactory $formatterFactory,
 	) {
-		$this->titleFactory = $titleFactory;
-		$this->commentFactory = $commentFactory;
-		$this->config = $config;
-		$this->tempUserCreator = $tempUserCreator;
 		$this->statusFormatter = $formatterFactory->getStatusFormatter( RequestContext::getMain() );
 	}
 
 	/**
 	 * @throws HttpException
 	 */
-	public function run() {
+	public function run(): Response {
 		$auth = $this->getAuthority();
 		$canComment = Utils::canUserComment( $auth );
 		if ( $canComment !== true ) {
@@ -59,7 +56,6 @@ class ApiPostComment extends SimpleHandler {
 
 		$html = trim( (string)$body[ 'html' ] );
 		$wikitext = trim( (string)$body[ 'wikitext' ] );
-
 		if ( !$html && !$wikitext ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-submit-error-empty' ), 400 );
@@ -71,7 +67,7 @@ class ApiPostComment extends SimpleHandler {
 
 			if ( $parent->isDeleted() ) {
 				throw new LocalizedHttpException(
-					new MessageValue( 'yappin-submit-error-parent-missing', $parentId ), 400 );
+					new MessageValue( 'yappin-submit-error-parent-missing', [ $parentId ] ), 400 );
 			}
 			if ( $parent->getParent() ) {
 				throw new LocalizedHttpException(
@@ -84,7 +80,7 @@ class ApiPostComment extends SimpleHandler {
 		$page = $this->titleFactory->newFromID( $pageId );
 		if ( !$page || !$page->exists() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-page-missing', $pageId ), 400 );
+				new MessageValue( 'yappin-submit-error-page-missing', [ $pageId ] ), 400 );
 		}
 
 		if ( !Utils::isCommentsEnabled( $this->config, $page ) ) {
@@ -93,8 +89,7 @@ class ApiPostComment extends SimpleHandler {
 		}
 
 		// Handle temporary users. Use "edit" action as it's the only one supported right now.
-		$user = $this->getAuthority();
-		if ( $this->tempUserCreator->shouldAutoCreate( $user, 'edit' ) ) {
+		if ( $this->tempUserCreator->shouldAutoCreate( $this->getAuthority(), 'edit' ) ) {
 			$status = $this->tempUserCreator->create(
 				null,
 				$this->getSession()->getRequest()
@@ -108,22 +103,31 @@ class ApiPostComment extends SimpleHandler {
 				}
 				throw new LocalizedHttpException( MessageValue::newFromSpecifier( $msg ), 400 );
 			}
+		} else {
+			$user = $this->getAuthority()->getUser();
 		}
 
 		// Create a new comment
-		$comment = $this->commentFactory->newEmpty()
+		$comment = $this->commentFactory->newEmptyComment()
 			->setTitle( $page )
 			->setActor( $user )
 			->setParent( $parent );
 
 		if ( $html ) {
-			$comment->setHtml( $html );
-		} else {
-			$comment->setWikitext( $wikitext );
+			// This is a little silly but to sanitise the HTML we're going to parse it to wikitext and back again
+			$wikitext = $this->pageRestHelperFactory->newHtmlInputTransformHelper( [], $page, $html )
+				->getContent()->serialize();
 		}
+		$html = $this->commentHelperService->getCommentAsHtml(
+			$wikitext,
+			$page
+		);
+		
+		$comment->setWikitext( $wikitext );
+		$comment->setHtml( $html );
+		$af = $this->commentHelperService->checkAbuseFilter( $user, $page, $wikitext );
 
-		$isSpam = $comment->checkSpamFilters();
-		if ( $isSpam ) {
+		if ( !$af->isOK() ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-submit-error-spam' ), 400
 			);

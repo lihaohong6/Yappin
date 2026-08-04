@@ -2,18 +2,16 @@
 
 namespace MediaWiki\Extension\Yappin\Models;
 
-use MediaWiki\Registration\ExtensionRegistry;
-use InvalidArgumentException;
-use MediaWiki\Config\Config;
-use MediaWiki\Extension\AbuseFilter\AbuseFilterServices;
 use MediaWiki\Extension\Yappin\CommentFactory;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\Extension\Yappin\CommentHelperService;
 use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
-use MediaWiki\Parser\ParserOptions;
+use MediaWiki\User\UserIdentityUtils;
+use RuntimeException;
 use Wikimedia\Rdbms\IDatabase;
-use MediaWiki\Content\WikitextContent;
+use Wikimedia\Rdbms\LBFactory;
 
 class Comment {
 	public const TABLE_NAME = 'com_comment';
@@ -21,14 +19,14 @@ class Comment {
 	/** @var int|null */
 	public $mId = null;
 
-	/** @var Title */
-	private $mTitle;
+	/** @var Title|null */
+	private $mTitle = null;
 
 	/** @var int */
 	public $mPageId;
 
-	/** @var UserIdentity */
-	private $mActor;
+	/** @var UserIdentity|null */
+	private $mActor = null;
 
 	/** @var int */
 	public $mActorId;
@@ -54,42 +52,27 @@ class Comment {
 	/** @var int */
 	public $mRating = 0;
 
-	/** @var string */
-	public $mHtml;
+	/** @var string|null */
+	public $mHtml = null;
 
 	/** @var string */
 	public $mWikitext;
 
 	/** @var IDatabase */
-	private $dbw;
-
-	/** @var ActorStore */
-	private $actorStore;
-
-	/** @var Config */
-	private $config;
-
-	/** @var CommentFactory */
-	private $commentFactory;
+	public IDatabase $dbw;
 
 	/**
-	 * @param bool $fromExisting whether this object is being built from an existing database row
 	 * @internal
 	 */
-	public function __construct( $fromExisting = false ) {
-		$services = MediaWikiServices::getInstance();
-		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
-
-		if ( $fromExisting ) {
-			// Use getActorStoreForImport here, as there may be some IP actors that require creation,
-			// even if temp accounts are enabled. This is probably suboptimal, but the only way to deal with this for now.
-			$this->actorStore = $services->getActorStoreFactory()->getActorStoreForImport();
-		} else {
-			$this->actorStore = $services->getActorStore();
-		}
-
-		$this->config = $services->getMainConfig();
-		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
+	public function __construct(
+		private readonly LBFactory $lbFactory,
+		private readonly ActorStore $actorStore,
+		private readonly CommentFactory $commentFactory,
+		private readonly TitleFactory $titleFactory,
+		private readonly UserIdentityUtils $userIdentityUtils,
+		private readonly CommentHelperService $commentHelperService
+	) {
+		$this->dbw = $this->lbFactory->getPrimaryDatabase();
 	}
 
 	/**
@@ -105,11 +88,9 @@ class Comment {
 	 * @return Title
 	 */
 	public function getTitle() {
-		if ( $this->mTitle !== null ) {
-			return $this->mTitle;
+		if ( $this->mTitle === null ) {
+			$this->mTitle = $this->titleFactory->newFromID( $this->mPageId );
 		}
-
-		$this->mTitle = MediaWikiServices::getInstance()->getTitleFactory()->newFromID( $this->mPageId );
 		return $this->mTitle;
 	}
 
@@ -118,7 +99,7 @@ class Comment {
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 * @param Title $title
-	 * @return Comment
+	 * @return self
 	 */
 	public function setTitle( $title ) {
 		$this->mTitle = $title;
@@ -131,11 +112,9 @@ class Comment {
 	 * @return UserIdentity
 	 */
 	public function getActor() {
-		if ( $this->mActor ) {
-			return $this->mActor;
+		if ( $this->mActor === null ) {
+			$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
 		}
-
-		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
 		return $this->mActor;
 	}
 
@@ -145,7 +124,7 @@ class Comment {
 	 * This method returns the current Comment object for easier chaining.
 	 * @param UserIdentity $user
 	 * @param int|null $actorId
-	 * @return Comment
+	 * @return self
 	 */
 	public function setActor( $user, $actorId = null ) {
 		$this->mActor = $user;
@@ -172,12 +151,12 @@ class Comment {
 	 * one level deep. Once set, a comment's parent should *not* be mutated.
 	 *
 	 * This method returns the current Comment object for easier chaining.
-	 * @param Comment|null $commentOrNull
-	 * @return Comment
+	 * @param self|null $commentOrNull
+	 * @return self
 	 */
 	public function setParent( $commentOrNull ) {
 		$this->mParent = $commentOrNull;
-		$this->mParentId = $commentOrNull ? $commentOrNull->getId() : null;
+		$this->mParentId = $commentOrNull?->getId();
 		return $this;
 	}
 
@@ -218,8 +197,19 @@ class Comment {
 	/**
 	 * The parsed HTML for the comment
 	 * @return string
+	 * @throws RuntimeException if called before the comment exists in the database
 	 */
 	public function getHtml() {
+		if ( !$this->mHtml && $this->mWikitext ) {
+			// An earlier version of the extension may have not stored HTML but did store wikitext
+			// so we should do a one-time parse of it again and save it
+			$this->mHtml = $this->commentHelperService->getCommentAsHtml(
+				$this->mWikitext,
+				$this->getTitle()
+			);
+			$this->save( false );
+		}
+
 		return $this->mHtml;
 	}
 
@@ -230,11 +220,8 @@ class Comment {
 	 * @param string $html
 	 * @return Comment
 	 */
-	public function setHtml( $html, $parse = true ) {
+	public function setHtml( $html ) {
 		$this->mHtml = $html;
-		if ( $parse === true ) {
-			$this->reparse( true );
-		}
 		return $this;
 	}
 
@@ -248,18 +235,14 @@ class Comment {
 	}
 
 	/**
-	 * Sets the wikitext for this comment, and triggers a parse of it if necessary.
+	 * Sets the wikitext for this comment.
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 * @param string $text
-	 * @param bool $parse
-	 * @return Comment
+	 * @return self
 	 */
-	public function setWikitext( $text, $parse = true ) {
+	public function setWikitext( $text ) {
 		$this->mWikitext = $text;
-		if ( $parse === true ) {
-			$this->reparse( false );
-		}
 		return $this;
 	}
 
@@ -293,17 +276,6 @@ class Comment {
 	}
 
 	/**
-	 * Gets the CommentRating object for a specific user. If the user has not rated this comment, then this method will
-	 * return null.
-	 *
-	 * @param UserIdentity $user
-	 * @return CommentRating
-	 */
-	public function getRatingForUser( $user ) {
-		return CommentRating::fetchByCommentAndUser( $this->mId, $user );
-	}
-
-	/**
 	 * Sets a rating for a particular user.
 	 *
 	 * @param UserIdentity $user
@@ -311,7 +283,7 @@ class Comment {
 	 * @return CommentRating
 	 */
 	public function setRatingForUser( $user, $rating ) {
-		$obj = new CommentRating();
+		$obj = new CommentRating( $this->actorStore, $this->lbFactory, $this->commentFactory );
 		$obj->setComment( $this )
 			->setActor( $user )
 			->setRating( $rating )
@@ -370,88 +342,11 @@ class Comment {
 	 * This method returns the current Comment object for easier chaining.
 	 *
 	 * @param number $rating
-	 * @return $this
+	 * @return self
 	 */
 	public function setRating( $rating ) {
 		$this->mRating = $rating;
 		return $this;
-	}
-
-	/**
-	 * Parse the wikitext and sets the output as appropriate. For convenience, this method also returns the output.
-	 *
-	 * This method should typically only be called once when the comment is changed. Re-parsing the comment
-	 * on every page view is expensive and unnecessary.
-	 *
-	 * @param bool $fromHtml - whether to use $this->html to
-	 * @return string
-	 */
-	public function reparse( $fromHtml = false ) {
-		if ( $fromHtml ) {
-			if ( !$this->mHtml ) {
-				throw new InvalidArgumentException( 'No HTML provided; the comment could not be parsed.' );
-			}
-
-			$transform = MediaWikiServices::getInstance()->getHtmlTransformFactory()
-				->getHtmlToContentTransform( $this->mHtml, $this->getTitle() );
-
-			$transform->setOptions( [
-				'contentmodel' => CONTENT_MODEL_WIKITEXT,
-				'offsetType' => 'byte'
-			] );
-
-			$content = $transform->htmlToContent();
-			if ( !$content instanceof WikitextContent ) {
-				// TODO better exception class
-				throw new InvalidArgumentException( 'Unable to convert to wikitext' );
-			}
-
-			$this->mWikitext = $content->getText();
-		} else {
-			if ( !$this->mWikitext ) {
-				throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
-			}
-
-			$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
-			$parserOpts = $this->mActor ? ParserOptions::newFromUser( $this->mActor ) : ParserOptions::newFromAnon();
-			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitle(), $parserOpts );
-
-			$this->mHtml = $parserOutput->runOutputPipeline( $parserOpts, [] )->getContentHolderText();
-		}
-	}
-
-	/**
-	 * Check whether this Comment object would violate one of the wiki's anti-abuse measures. If the result from this
-	 * method is null, then the comment passed validation. Else, it will return an array of errors from
-	 * `Status::getErrorsArray()`.
-	 * @return array[]|null
-	 */
-	public function checkSpamFilters() {
-		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromUserIdentity( $this->mActor );
-
-		// Run the comment through AbuseFilter, if it is installed and enabled
-		if ( $this->config->get( 'CommentsUseAbuseFilter' ) &&
-			ExtensionRegistry::getInstance()->isLoaded( 'Abuse Filter' ) ) {
-			$vars = AbuseFilterServices::getVariableGeneratorFactory()
-				->newGenerator()
-				->addUserVars( $this->mActor )
-				->addTitleVars( $this->mTitle, 'page' )
-				->addGenericVars()
-				->getVariableHolder();
-			$vars->setVar( 'action', 'comment' );
-			$vars->setVar( 'new_wikitext', $this->mWikitext );
-			$vars->setLazyLoadVar( 'new_size', 'length', [ 'length-var' => 'new_wikitext' ] );
-
-			$rf = AbuseFilterServices::getFilterRunnerFactory();
-			$runner = $rf->newRunner( $user, $this->mTitle, $vars, 'default' );
-			$status = $runner->run();
-
-			if ( !$status->isOK() ) {
-				return $status->getErrorsArray();
-			}
-		}
-
-		return null;
 	}
 
 	/**
@@ -501,7 +396,6 @@ class Comment {
 				->caller( __METHOD__ )
 				->execute();
 		}
-
 		return $this->dbw->affectedRows() ? $this->mId : null;
 	}
 
@@ -516,7 +410,7 @@ class Comment {
 			'user' => [
 				'name' => $this->getActor()->getName(),
 				'anon' => !$this->getActor()->isRegistered(),
-				'temp' => MediaWikiServices::getInstance()->getUserIdentityUtils()->isTemp( $this->getActor() )
+				'temp' => $this->userIdentityUtils->isTemp( $this->getActor() )
 			],
 			'parent' => $this->mParentId,
 			'deleted' => $this->getDeletedActor() ? [
@@ -524,7 +418,7 @@ class Comment {
 				'id' => $this->getDeletedActor()->getId()
 			] : null,
 			'rating' => $this->mRating,
-			'html' => $this->mHtml,
+			'html' => $this->getHtml(),
 			'wikitext' => $this->mWikitext
 		];
 	}

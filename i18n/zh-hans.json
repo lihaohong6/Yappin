@@ -54,9 +54,8 @@
 	"yappin-viewall": "查看所有评论",
 	"yappin-anon": "匿名",
 	"yappin-no-script": "评论区功能依赖 JavaScript，禁用后将无法加载评论区。",
-	"yappin-page-link": "发布于页面 $1",
-	"yappin-parent-link": "评论给 $1",
-	"yappin-parent-link-inner": "评论",
+	"yappin-comment-page-link": "发布于页面 [$1 $2]",
+	"yappin-comment-parent-link": "评论给 [$1 评论]",
 	"yappin-user-filter-banner": "正在显示来自 $1 的评论",
 	"yappin-contributions": "评论",
 	"yappin-view-replies": "查看回复（$1）"

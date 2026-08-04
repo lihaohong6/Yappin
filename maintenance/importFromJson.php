@@ -108,7 +108,11 @@ class ImportFromJson extends Maintenance {
 
 		$parser = $pf->create();
 		$parserOpts = ParserOptions::newFromUser( $user );
-		$parserOutput = $parser->parse( $data[ 'wikitext' ], PageReferenceValue::localReference( NS_MAIN, 'Test' ), $parserOpts );
+		$parserOutput = $parser->parse(
+			$data[ 'wikitext' ],
+			PageReferenceValue::localReference( NS_MAIN, 'Test' ),
+			$parserOpts
+		);
 
 		$set = [
 			'c_id' => $data[ 'id' ],

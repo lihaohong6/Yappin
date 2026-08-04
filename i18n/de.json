@@ -56,9 +56,8 @@
 	"yappin-viewall": "Alle Kommentare anzeigen",
 	"yappin-anon": "Anonym",
 	"yappin-no-script": "JavaScript muss in deinem Browser aktiviert sein, um Kommentare anzuzeigen und darauf zu reagieren.",
-	"yappin-page-link": "Verfasst auf $1",
-	"yappin-parent-link": "als Antwort auf $1",
-	"yappin-parent-link-inner": "Kommentar",
+	"yappin-comment-page-link": "Verfasst auf [$1 $2]",
+	"yappin-comment-parent-link": "als Antwort auf einen [$1 Kommentar]",
 	"yappin-user-filter-banner": "Kommentare von $1 anzeigen",
 	"yappin-contributions": "Kommentare",
 	"yappin-view-replies": "Antworten anzeigen ($1)"

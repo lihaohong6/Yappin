@@ -2,11 +2,11 @@
 
 namespace MediaWiki\Extension\Yappin\Models;
 
-use MediaWiki\MediaWikiServices;
+use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
 use stdClass;
-use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\LBFactory;
 
 class CommentRating {
 	/** @var int */
@@ -21,26 +21,26 @@ class CommentRating {
 	/** @var int -1, 0, or 1 */
 	public $mRating;
 
-	/** @var IDatabase */
-	private $dbw;
-
-	/** @var ActorStore */
-	private $actorStore;
-
-	public function __construct() {
-		$services = MediaWikiServices::getInstance();
-		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
-		$this->actorStore = $services->getActorStore();
+	public function __construct(
+		private readonly ActorStore $actorStore,
+		private readonly LBFactory $lbFactory,
+		private readonly CommentFactory $commentFactory
+	) {
 	}
 
 	/**
 	 * Create a CommentRating object from a database row
 	 *
 	 * @param stdClass $row
-	 * @return CommentRating
+	 * @return self
 	 */
-	public static function newFromRow( $row ) {
-		$obj = new CommentRating();
+	public static function newFromRow(
+		stdClass $row,
+		ActorStore $actorStore,
+		LBFactory $lbFactory,
+		CommentFactory $commentFactory
+	) {
+		$obj = new self( $actorStore, $lbFactory, $commentFactory );
 		$obj->mCommentId = (int)$row->cr_comment;
 		$obj->mActorId = (int)$row->cr_actor;
 		$obj->mRating = (int)$row->cr_rating;
@@ -54,18 +54,26 @@ class CommentRating {
 	 *
 	 * @param Comment|int $comment either a Comment object or an integer representing the comment ID
 	 * @param UserIdentity|int $actor either a UserIdentity object or an integer representing the actor ID of the user
-	 * @return CommentRating|null
+	 * @param ActorStore $actorStore
+	 * @param LBFactory $lbFactory
+	 * @param CommentFactory $commentFactory
+	 * @return self|null
 	 */
-	public static function fetchByCommentAndUser( $comment, $actor ) {
+	public static function fetchByCommentAndUser(
+		Comment|int $comment,
+		UserIdentity|int $actor,
+		ActorStore $actorStore,
+		LBFactory $lbFactory,
+		CommentFactory $commentFactory
+	) {
 		if ( $comment instanceof Comment ) {
 			$comment = $comment->getId();
 		}
 
-		$services = MediaWikiServices::getInstance();
-		$dbr = $services->getDBLoadBalancerFactory()->getReplicaDatabase();
+		$dbr = $lbFactory->getReplicaDatabase();
 
 		if ( $actor instanceof UserIdentity ) {
-			$actor = $services->getActorStore()->findActorId( $actor, $dbr );
+			$actor = $actorStore->findActorId( $actor, $dbr );
 		}
 
 		$row = $dbr->newSelectQueryBuilder()
@@ -75,7 +83,7 @@ class CommentRating {
 			->caller( __METHOD__ )
 			->fetchRow();
 
-		return $row ? self::newFromRow( $row ) : null;
+		return $row ? self::newFromRow( $row, $actorStore, $lbFactory, $commentFactory ) : null;
 	}
 
 	/**
@@ -84,8 +92,7 @@ class CommentRating {
 	 */
 	public function getComment() {
 		if ( $this->mComment === null ) {
-			$this->mComment = MediaWikiServices::getInstance()->getService( 'Yappin.CommentFactory' )
-				->newFromId( $this->mCommentId );
+			$this->mComment = $this->commentFactory->newFromId( $this->mCommentId );
 		}
 
 		return $this->mComment;
@@ -112,11 +119,11 @@ class CommentRating {
 	 *
 	 * This method returns the current CommentRating object for easier chaining.
 	 * @param UserIdentity|int $actor
-	 * @return $this
+	 * @return self
 	 */
 	public function setActor( $actor ) {
 		if ( $actor instanceof UserIdentity ) {
-			$actor = $this->actorStore->acquireActorId( $actor, $this->dbw );
+			$actor = $this->actorStore->acquireActorId( $actor, $this->lbFactory->getPrimaryDatabase() );
 		}
 
 		$this->mActorId = $actor;
@@ -127,8 +134,8 @@ class CommentRating {
 	 * Sets the user's rating of the comment (-1, 0, or 1)
 	 *
 	 * This method returns the current CommentRating object for easier chaining.
-	 * @param $rating
-	 * @return $this
+	 * @param int $rating
+	 * @return self
 	 */
 	public function setRating( $rating ) {
 		$this->mRating = $rating;
@@ -140,7 +147,7 @@ class CommentRating {
 	 *
 	 * This method returns the current CommentRating object for easier chaining.
 	 * @param Comment $comment
-	 * @return $this
+	 * @return self
 	 */
 	public function setComment( $comment ) {
 		$this->mComment = $comment;
@@ -153,7 +160,7 @@ class CommentRating {
 	 * @return void
 	 */
 	public function save() {
-		$prev = $this->dbw->newSelectQueryBuilder()
+		$prev = $this->lbFactory->getPrimaryDatabase()->newSelectQueryBuilder()
 			->select( 'cr_rating' )
 			->table( 'com_rating' )
 			->where( [ 'cr_actor' => $this->mActorId, 'cr_comment' => $this->mCommentId ] )
@@ -165,7 +172,7 @@ class CommentRating {
 			'cr_rating' => $this->mRating
 		];
 
-		$this->dbw->newInsertQueryBuilder()
+		$this->lbFactory->getPrimaryDatabase()->newInsertQueryBuilder()
 			->insertInto( 'com_rating' )
 			->row( $row )
 			->onDuplicateKeyUpdate()

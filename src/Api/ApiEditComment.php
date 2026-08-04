@@ -4,34 +4,28 @@ namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Extension\Yappin\CommentHelperService;
 use MediaWiki\Extension\Yappin\Utils;
+use MediaWiki\Rest\Handler\Helper\PageRestHelperFactory;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
-use MediaWiki\User\ActorStore;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiEditComment extends SimpleHandler {
-	/**
-	 * @var CommentFactory
-	 */
-	private CommentFactory $commentFactory;
-
-	/**
-	 * @var ActorStore
-	 */
-	private ActorStore $actorStore;
-
-	public function __construct( CommentFactory $commentFactory, ActorStore $actorStore ) {
-		$this->commentFactory = $commentFactory;
-		$this->actorStore = $actorStore;
+	public function __construct(
+		private readonly CommentFactory $commentFactory,
+		private readonly PageRestHelperFactory $pageRestHelperFactory,
+		private readonly CommentHelperService $commentHelperService
+	) {
 	}
 
 	/**
 	 * @throws HttpException
 	 */
-	public function run() {
+	public function run(): Response {
 		if ( $this->getRequest()->getMethod() === 'PUT' ) {
 			return $this->runEditComment();
 		} else {
@@ -39,7 +33,10 @@ class ApiEditComment extends SimpleHandler {
 		}
 	}
 
-	private function runEditComment() {
+	/**
+	 * @throws HttpException
+	 */
+	private function runEditComment(): Response {
 		$auth = $this->getAuthority();
 
 		$canComment = Utils::canUserComment( $auth );
@@ -53,7 +50,6 @@ class ApiEditComment extends SimpleHandler {
 
 		$html = trim( (string)$body[ 'html' ] );
 		$wikitext = trim( (string)$body[ 'wikitext' ] );
-
 		if ( !$html && !$wikitext ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-submit-error-empty' ), 400 );
@@ -61,7 +57,7 @@ class ApiEditComment extends SimpleHandler {
 
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
+		} catch ( InvalidArgumentException ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
@@ -72,20 +68,29 @@ class ApiEditComment extends SimpleHandler {
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
-		if ( $comment->getActor()->getId() !== $this->getAuthority()->getUser()->getId() ) {
+
+		$user = $this->getAuthority()->getUser();
+		if ( $comment->getActor()->getId() !== $user->getId() ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-notself' ), 400
 			);
 		}
 
 		if ( $html ) {
-			$comment->setHtml( $html );
-		} else {
-			$comment->setWikitext( $wikitext );
+			// This is a little silly but to sanitise the HTML we're going to parse it to wikitext and back again
+			$wikitext = $this->pageRestHelperFactory->newHtmlInputTransformHelper( [], $comment->getTitle(), $html )
+				->getContent()->serialize();
 		}
+		$html = $this->commentHelperService->getCommentAsHtml(
+			$wikitext,
+			$comment->getTitle()
+		);
 
-		$isSpam = $comment->checkSpamFilters();
-		if ( $isSpam ) {
+		$comment->setWikitext( $wikitext );
+		$comment->setHtml( $html );
+		$af = $this->commentHelperService->checkAbuseFilter( $user, $comment->getTitle(), $wikitext );
+
+		if ( !$af->isOK() ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-submit-error-spam' ), 400
 			);
@@ -98,7 +103,10 @@ class ApiEditComment extends SimpleHandler {
 		] );
 	}
 
-	private function runDeleteComment() {
+	/**
+	 * @throws HttpException
+	 */
+	private function runDeleteComment(): Response {
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
 		$commentId = (int)$params[ 'commentid' ];
@@ -106,7 +114,7 @@ class ApiEditComment extends SimpleHandler {
 
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
+		} catch ( InvalidArgumentException ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
@@ -167,7 +175,7 @@ class ApiEditComment extends SimpleHandler {
 	/**
 	 * @inheritDoc
 	 */
-	public function getParamSettings() {
+	public function getParamSettings(): array {
 		return [
 			'commentid' => [
 				self::PARAM_SOURCE => 'path',

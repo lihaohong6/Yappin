@@ -56,9 +56,8 @@
 	"yappin-viewall": "Показать все комментарии",
 	"yappin-anon": "Аноним",
 	"yappin-no-script": "Для просмотра и написания комментариев в вашем браузере должен быть включен JavaScript.",
-	"yappin-page-link": "Опубликовано в $1",
-	"yappin-parent-link": "в ответ на $1",
-	"yappin-parent-link-inner": "комментарий",
+	"yappin-comment-page-link": "Опубликовано в [$1 $2]",
+	"yappin-comment-parent-link": "в ответ на [$1 комментарий]",
 	"yappin-user-filter-banner": "Отображение комментариев от $1",
 	"yappin-contributions": "комментарии",
 	"yappin-view-replies": "Показать ответы ($1)"

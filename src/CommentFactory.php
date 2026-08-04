@@ -4,25 +4,36 @@ namespace MediaWiki\Extension\Yappin;
 
 use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\Models\Comment;
+use MediaWiki\Title\TitleFactory;
+use MediaWiki\User\ActorStoreFactory;
 use MediaWiki\User\UserIdentity;
+use MediaWiki\User\UserIdentityUtils;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;
 
 class CommentFactory {
-	private LBFactory $lbFactory;
-
 	public function __construct(
-		LBFactory $lbFactory
+		private readonly LBFactory $lbFactory,
+		private readonly ActorStoreFactory $actorStoreFactory,
+		private readonly TitleFactory $titleFactory,
+		private readonly UserIdentityUtils $userIdentityUtils,
+		private readonly CommentHelperService $commentHelperService
 	) {
-		$this->lbFactory = $lbFactory;
 	}
 
 	/**
 	 * Create a new empty Comment object
 	 * @return Comment
 	 */
-	public function newEmpty() {
-		return new Comment();
+	public function newEmptyComment() {
+		return new Comment(
+			$this->lbFactory,
+			$this->actorStoreFactory->getActorStore(),
+			$this,
+			$this->titleFactory,
+			$this->userIdentityUtils,
+			$this->commentHelperService
+		);
 	}
 
 	/**
@@ -32,7 +43,7 @@ class CommentFactory {
 	 * @return Comment
 	 */
 	public function newFromRow( $row, $user = null ) {
-		$comment = new Comment( true );
+		$comment = $this->newEmptyComment();
 		$comment->mId = (int)$row->c_id;
 		$comment->mPageId = (int)$row->c_page;
 

@@ -6,10 +6,10 @@ use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\CommentsPager;
 use MediaWiki\Extension\Yappin\Models\Comment;
-use MediaWiki\Extension\Yappin\Models\CommentRating;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\User\ActorStore;
 use Wikimedia\Message\MessageValue;
@@ -19,27 +19,15 @@ use Wikimedia\Rdbms\LBFactory;
 
 class ApiGetCommentById extends SimpleHandler {
 	/**
-	 * @var CommentFactory
-	 */
-	private CommentFactory $commentFactory;
-
-	/**
-	 * @var ActorStore
-	 */
-	private ActorStore $actorStore;
-
-	/**
 	 * @var IDatabase
 	 */
 	private $dbr;
 
 	public function __construct(
-		CommentFactory $commentFactory,
-		ActorStore $actorStore,
+		private readonly CommentFactory $commentFactory,
+		private readonly ActorStore $actorStore,
 		LBFactory $factory
 	) {
-		$this->commentFactory = $commentFactory;
-		$this->actorStore = $actorStore;
 		$this->dbr = $factory->getReplicaDatabase();
 	}
 
@@ -59,7 +47,7 @@ class ApiGetCommentById extends SimpleHandler {
 	/**
 	 * @throws HttpException
 	 */
-	public function run() {
+	public function run(): Response {
 		$params = $this->getValidatedParams();
 		$commentId = $params[ 'commentid' ];
 		$showDeleted = Utils::canUserModerate( $this->getAuthority() );
@@ -119,6 +107,9 @@ class ApiGetCommentById extends SimpleHandler {
 		] );
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function getParamSettings() {
 		return [
 			'commentid' => [

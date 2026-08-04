@@ -1,6 +1,6 @@
 {
 	"name": "Yappin",
-	"version": "1.0",
+	"version": "1.1",
 	"author": [
 		"[https://github.com/jayktaylor Jayden Bailey]",
 		"..."
@@ -53,6 +53,14 @@
 		"comments",
 		"comments-manage"
 	],
+	"GroupPermissions": {
+		"*": {
+			"comments": true
+		},
+		"sysop": {
+			"comments-manage": true
+		}
+	},
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
 	"HookHandlers": {
 		"main": {
@@ -97,6 +105,8 @@
 				"Yappin.CommentFactory",
 				"MainConfig",
 				"TempUserCreator",
+				"PageRestHelperFactory",
+				"Yappin.CommentHelperService",
 				"FormatterFactory"
 			]
 		},
@@ -116,7 +126,8 @@
 			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiEditComment",
 			"services": [
 				"Yappin.CommentFactory",
-				"ActorStore"
+				"PageRestHelperFactory",
+				"Yappin.CommentHelperService"
 			]
 		},
 		{
@@ -219,9 +230,8 @@
 				"yappin-viewall",
 				"yappin-anon",
 				"yappin-loading",
-				"yappin-page-link",
-				"yappin-parent-link",
-				"yappin-parent-link-inner",
+				"yappin-comment-page-link",
+				"yappin-comment-parent-link",
 				"yappin-user-filter-banner",
 				"yappin-view-replies"
 			]
@@ -269,6 +279,17 @@
 	},
 	"ExtensionMessagesFiles": {
 		"CommentsAlias": "src/Yappin.i18n.alias.php"
+	},
+	"JobClasses": {
+		"ReparseCommentsJob": {
+			"class": "MediaWiki\\Extension\\Yappin\\Jobs\\ReparseCommentsJob",
+			"services": [
+				"TitleFactory",
+				"ConnectionProvider",
+				"Yappin.CommentHelperService"
+			],
+			"needsPage": false
+		}
 	},
 	"manifest_version": 2
 }

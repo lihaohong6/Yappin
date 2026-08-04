@@ -10,9 +10,9 @@ use MediaWiki\Hook\ContributionsToolLinksHook;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
+use MediaWiki\Skin\Skin;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
-use MediaWiki\Skin\Skin;
 
 class GeneralHookHandlers implements
 	GetAllBlockActionsHook,
@@ -20,10 +20,7 @@ class GeneralHookHandlers implements
 	ResourceLoaderGetConfigVarsHook,
 	ContributionsToolLinksHook
 {
-	private Config $config;
-
-	public function __construct( Config $config ) {
-		$this->config = $config;
+	public function __construct( private readonly Config $config ) {
 	}
 
 	/**

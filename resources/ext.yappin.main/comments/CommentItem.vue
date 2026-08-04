@@ -23,13 +23,13 @@
 								class="comment-page"
 								v-if="targetPage"
 							>
-								&#183; <span v-html="targetPageText"></span>
+								&#183; <span v-i18n-html="targetPageMessage"></span>
 							</span>
 							<span
 								class="comment-parent"
 								v-if="!store.singleComment && store.isSpecialComments && comment.parent"
 							>
-								<span @click="handleParentTextClick" v-html="targetParentText"></span>
+								<span @click="handleParentTextClick" v-i18n-html="targetParentMessage"></span>
 							</span>
 						</div>
 					</div>
@@ -166,16 +166,20 @@ module.exports = exports = defineComponent( {
 
 			return null;
 		},
-		targetPageText() {
-			return mw.message( 'yappin-page-link',
-				`<a href="${this.targetPage.getUrl()}">${this.targetPage.getPrefixedText()}</a>` )
+		targetPageMessage() {
+			return mw.message(
+				'yappin-comment-page-link',
+				this.targetPage.getUrl(),
+				this.targetPage.getPrefixedText()
+			);
 		},
-		targetParentText() {
+		targetParentMessage() {
 			const url = new URL( this.targetPage.getUrl(), config.wgServer );
 			url.searchParams.set( 'comment', this.comment.parent );
 
-			return mw.message( 'yappin-parent-link',
-				`<a href="${url}">${ mw.message( 'yappin-parent-link-inner' ) }</a>`
+			return mw.message(
+				'yappin-comment-parent-link',
+				url
 			);
 		},
 		singleCommentLink() {

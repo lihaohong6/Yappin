@@ -4,9 +4,9 @@ namespace MediaWiki\Extension\Yappin\Api;
 
 use MediaWiki\Extension\Yappin\CommentsPager;
 use MediaWiki\Extension\Yappin\Models\Comment;
-use MediaWiki\Extension\Yappin\Models\CommentRating;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
@@ -17,35 +17,17 @@ use Wikimedia\Rdbms\LBFactory;
 
 class ApiGetAllComments extends SimpleHandler {
 	/**
-	 * @var TitleFactory
-	 */
-	private TitleFactory $titleFactory;
-
-	/**
-	 * @var ActorStore
-	 */
-	private ActorStore $actorStore;
-
-	/**
 	 * @var IDatabase
 	 */
 	private $dbr;
 
-	/**
-	 * @var UserNameUtils
-	 */
-	private $userNameUtils;
-
 	public function __construct(
-		TitleFactory $titleFactory,
-		ActorStore $actorStore,
+		private readonly TitleFactory $titleFactory,
+		private readonly ActorStore $actorStore,
 		LBFactory $factory,
-		UserNameUtils $userNameUtils
+		private readonly UserNameUtils $userNameUtils
 	) {
-		$this->titleFactory = $titleFactory;
-		$this->actorStore = $actorStore;
 		$this->dbr = $factory->getReplicaDatabase();
-		$this->userNameUtils = $userNameUtils;
 	}
 
 	/**
@@ -65,7 +47,7 @@ class ApiGetAllComments extends SimpleHandler {
 	/**
 	 * @throws HttpException
 	 */
-	public function run() {
+	public function run(): Response {
 		$params = $this->getValidatedParams();
 		$pageid = $params[ 'pageid' ];
 
@@ -168,6 +150,9 @@ class ApiGetAllComments extends SimpleHandler {
 		] );
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function getParamSettings() {
 		return [
 			'pageid' => [

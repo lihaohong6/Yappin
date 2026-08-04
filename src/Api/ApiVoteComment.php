@@ -9,6 +9,7 @@ use MediaWiki\Language\FormatterFactory;
 use MediaWiki\Message\Message;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
+use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Status\StatusFormatter;
 use MediaWiki\User\TempUser\TempUserCreator;
@@ -16,24 +17,20 @@ use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
 class ApiVoteComment extends SimpleHandler {
-	private CommentFactory $commentFactory;
-	private TempUserCreator $tempUserCreator;
 	private StatusFormatter $statusFormatter;
 
 	public function __construct(
-		CommentFactory $commentFactory,
-		TempUserCreator $tempUserCreator,
-		FormatterFactory $formatterFactory
+		private readonly CommentFactory $commentFactory,
+		private readonly TempUserCreator $tempUserCreator,
+		readonly FormatterFactory $formatterFactory
 	) {
-		$this->commentFactory = $commentFactory;
-		$this->tempUserCreator = $tempUserCreator;
 		$this->statusFormatter = $formatterFactory->getStatusFormatter( RequestContext::getMain() );
 	}
 
 	/**
 	 * @throws HttpException
 	 */
-	public function run() {
+	public function run(): Response {
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
 
@@ -49,7 +46,7 @@ class ApiVoteComment extends SimpleHandler {
 
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
+		} catch ( InvalidArgumentException ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
