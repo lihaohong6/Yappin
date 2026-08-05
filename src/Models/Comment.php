@@ -225,6 +225,10 @@ class Comment {
 	/**
 	 * Sets the HTML for this comment.
 	 *
+	 * The HTML passed to this method is treated as untrusted: when $parse is true it is only
+	 * used to derive the wikitext, and the stored HTML is then re-generated from that wikitext
+	 * by the parser. Callers must not rely on the exact HTML they passed in being kept.
+	 *
 	 * This method returns the current Comment object for easier chaining.
 	 * @param string $html
 	 * @param bool $parse Whether to reparse the HTML into wikitext
@@ -233,7 +237,17 @@ class Comment {
 	public function setHtml( $html, $parse = true ) {
 		$this->mHtml = $html;
 		if ( $parse === true ) {
+			// Convert the supplied HTML to wikitext...
 			$this->reparse( true );
+			// ...and then throw that HTML away and parse the wikitext back into HTML, so that
+			// the stored HTML always comes from the parser (which sanitises it) rather than
+			// from the client. Otherwise a crafted API request can store arbitrary HTML.
+			if ( ( $this->mWikitext ?? '' ) !== '' ) {
+				$this->reparse( false );
+			} else {
+				// The HTML carried no content; don't leave the unparsed HTML behind.
+				$this->mHtml = '';
+			}
 		}
 		return $this;
 	}
@@ -388,7 +402,7 @@ class Comment {
 	 */
 	public function reparse( $fromHtml = false ) {
 		if ( $fromHtml ) {
-			if ( !$this->mHtml ) {
+			if ( ( $this->mHtml ?? '' ) === '' ) {
 				throw new InvalidArgumentException( 'No HTML provided; the comment could not be parsed.' );
 			}
 
@@ -408,7 +422,7 @@ class Comment {
 
 			$this->mWikitext = $content->getText();
 		} else {
-			if ( !$this->mWikitext ) {
+			if ( ( $this->mWikitext ?? '' ) === '' ) {
 				throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
 			}
 

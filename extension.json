@@ -1,6 +1,6 @@
 {
 	"name": "Yappin",
-	"version": "1.0",
+	"version": "1.1",
 	"author": [
 		"[https://github.com/jayktaylor Jayden Bailey]",
 		"[https://github.com/lihaohong6 lihaohong6]"
@@ -198,6 +198,7 @@
 			],
 			"dependencies": [
 				"mediawiki.api",
+				"mediawiki.jqueryMsg",
 				"oojs-ui-core",
 				"oojs-ui-widgets",
 				"moment"
@@ -240,9 +241,8 @@
 				"yappin-viewall",
 				"yappin-anon",
 				"yappin-loading",
-				"yappin-page-link",
-				"yappin-parent-link",
-				"yappin-parent-link-inner",
+				"yappin-comment-page-link",
+				"yappin-comment-parent-link",
 				"yappin-user-filter-banner",
 				"yappin-view-replies",
 				"yappin-preview-button",

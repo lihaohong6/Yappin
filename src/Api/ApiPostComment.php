@@ -115,6 +115,10 @@ class ApiPostComment extends SimpleHandler {
 
 		if ( $html ) {
 			$comment->setHtml( $html );
+			if ( $comment->getWikitext() === '' ) {
+				throw new LocalizedHttpException(
+					new MessageValue( 'yappin-submit-error-empty' ), 400 );
+			}
 		} else {
 			$comment->setWikitext( $wikitext );
 		}
