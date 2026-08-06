@@ -3,7 +3,6 @@
 namespace MediaWiki\Extension\Yappin;
 
 use MediaWiki\Extension\Yappin\Models\Comment;
-use MediaWiki\Extension\Yappin\Models\CommentRating;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\ActorStore;
 use stdClass;
@@ -458,7 +457,7 @@ class CommentsPager {
 			// The comment object, returned as-is
 			'c' => $comment,
 			// The current user's rating, if we retrieved it
-			'ur' => isset( $row->yr_rating ) ? CommentRating::newFromRow( $row )->getRating() : 0,
+			'ur' => isset( $row->yr_rating ) ? (int)$row->yr_rating : 0,
 			// Whether this comment belongs to the current actor
 			'ours' => $this->currentActor === $comment->mActorId,
 			// The page for the comment, only returned if there was no target page given to the pager instance

@@ -3,18 +3,28 @@
 namespace MediaWiki\Extension\Yappin;
 
 use InvalidArgumentException;
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\Models\Comment;
+use MediaWiki\Extension\Yappin\Models\CommentRating;
+use MediaWiki\Parser\Parsoid\HtmlTransformFactory;
+use MediaWiki\Parser\Parsoid\ParsoidParserFactory;
+use MediaWiki\Title\TitleFactory;
+use MediaWiki\User\ActorStore;
+use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;
 
 class CommentFactory {
-	private LBFactory $lbFactory;
-
 	public function __construct(
-		LBFactory $lbFactory
+		private readonly LBFactory $lbFactory,
+		private readonly ActorStore $actorStore,
+		private readonly TitleFactory $titleFactory,
+		private readonly UserFactory $userFactory,
+		private readonly ParsoidParserFactory $parserFactory,
+		private readonly HtmlTransformFactory $htmlTransformFactory,
+		private readonly Config $config
 	) {
-		$this->lbFactory = $lbFactory;
 	}
 
 	/**
@@ -22,7 +32,24 @@ class CommentFactory {
 	 * @return Comment
 	 */
 	public function newEmpty() {
-		return new Comment();
+		return new Comment(
+			$this->lbFactory,
+			$this->actorStore,
+			$this,
+			$this->titleFactory,
+			$this->userFactory,
+			$this->parserFactory,
+			$this->htmlTransformFactory,
+			$this->config
+		);
+	}
+
+	/**
+	 * Create a new empty CommentRating object
+	 * @return CommentRating
+	 */
+	public function newEmptyRating() {
+		return new CommentRating( $this->lbFactory, $this->actorStore, $this );
 	}
 
 	/**
@@ -32,7 +59,7 @@ class CommentFactory {
 	 * @return Comment
 	 */
 	public function newFromRow( $row, $user = null ) {
-		$comment = new Comment();
+		$comment = $this->newEmpty();
 		$comment->mId = (int)$row->yap_id;
 		$comment->mPageId = (int)$row->yap_page;
 

@@ -7,14 +7,18 @@ use MediaWiki\Config\Config;
 use MediaWiki\Content\WikitextContent;
 use MediaWiki\Extension\AbuseFilter\AbuseFilterServices;
 use MediaWiki\Extension\Yappin\CommentFactory;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\ParserOptions;
+use MediaWiki\Parser\Parsoid\HtmlTransformFactory;
+use MediaWiki\Parser\Parsoid\ParsoidParserFactory;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Title\Title;
+use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
+use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use Telepedia\UserProfileV2\Avatar\UserProfileV2Avatar;
 use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\LBFactory;
 
 class Comment {
 	public const TABLE_NAME = 'yappin_comment';
@@ -64,24 +68,22 @@ class Comment {
 	/** @var IDatabase */
 	private $dbw;
 
-	/** @var ActorStore */
-	private $actorStore;
-
-	/** @var Config */
-	private $config;
-
-	/** @var CommentFactory */
-	private $commentFactory;
-
 	/**
+	 * Comment objects should be obtained from CommentFactory, which supplies these services.
+	 *
 	 * @internal
 	 */
-	public function __construct() {
-		$services = MediaWikiServices::getInstance();
-		$this->dbw = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
-		$this->actorStore = $services->getActorStore();
-		$this->config = $services->getMainConfig();
-		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
+	public function __construct(
+		private readonly LBFactory $lbFactory,
+		private readonly ActorStore $actorStore,
+		private readonly CommentFactory $commentFactory,
+		private readonly TitleFactory $titleFactory,
+		private readonly UserFactory $userFactory,
+		private readonly ParsoidParserFactory $parserFactory,
+		private readonly HtmlTransformFactory $htmlTransformFactory,
+		private readonly Config $config
+	) {
+		$this->dbw = $this->lbFactory->getPrimaryDatabase();
 	}
 
 	/**
@@ -103,7 +105,7 @@ class Comment {
 			return $this->mTitle;
 		}
 
-		$this->mTitle = MediaWikiServices::getInstance()->getTitleFactory()->newFromID( $this->mPageId );
+		$this->mTitle = $this->titleFactory->newFromID( $this->mPageId );
 		return $this->mTitle;
 	}
 
@@ -314,7 +316,9 @@ class Comment {
 	 * @return CommentRating
 	 */
 	public function getRatingForUser( $user ) {
-		return CommentRating::fetchByCommentAndUser( $this->mId, $user );
+		return CommentRating::fetchByCommentAndUser(
+			$this->mId, $user, $this->lbFactory, $this->actorStore, $this->commentFactory
+		);
 	}
 
 	/**
@@ -325,7 +329,7 @@ class Comment {
 	 * @return CommentRating
 	 */
 	public function setRatingForUser( $user, $rating ) {
-		$obj = new CommentRating();
+		$obj = $this->commentFactory->newEmptyRating();
 		$obj->setComment( $this )
 			->setActor( $user )
 			->setRating( $rating )
@@ -406,7 +410,7 @@ class Comment {
 				throw new InvalidArgumentException( 'No HTML provided; the comment could not be parsed.' );
 			}
 
-			$transform = MediaWikiServices::getInstance()->getHtmlTransformFactory()
+			$transform = $this->htmlTransformFactory
 				->getHtmlToContentTransform( $this->mHtml, $this->getTitle() );
 
 			$transform->setOptions( [
@@ -426,12 +430,17 @@ class Comment {
 				throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
 			}
 
-			$parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
-			$parserOpts = $this->mActor ? ParserOptions::newFromUser( $this->mActor ) : ParserOptions::newFromAnon();
+			$parser = $this->parserFactory->create();
+			// Parse as an anonymous user: the HTML produced here is stored and served to
+			// everyone, so it must not vary with the preferences of whoever happened to
+			// post or edit the comment.
+			$parserOpts = ParserOptions::newFromAnon();
 			$parserOpts->setAllowSpecialInclusion( false );
 			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitle(), $parserOpts );
 
-			$this->mHtml = $parserOutput->runOutputPipeline( $parserOpts )->getContentHolderText();
+			// 'unwrap' drops the .mw-parser-output wrapper.
+			$this->mHtml = $parserOutput->runOutputPipeline( $parserOpts, [ 'unwrap' => true ] )
+				->getContentHolderText();
 		}
 	}
 
@@ -442,15 +451,18 @@ class Comment {
 	 * @return array[]|null
 	 */
 	public function checkSpamFilters() {
-		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromUserIdentity( $this->mActor );
-
 		// Run the comment through AbuseFilter, if it is installed and enabled
 		if ( $this->config->get( 'YappinUseAbuseFilter' ) &&
 			ExtensionRegistry::getInstance()->isLoaded( 'Abuse Filter' ) ) {
+			// Go through the getters rather than the raw fields: a comment loaded from a
+			// database row (i.e. the edit path) only has the actor and page IDs populated.
+			$user = $this->userFactory->newFromUserIdentity( $this->getActor() );
+			$title = $this->getTitle();
+
 			$vars = AbuseFilterServices::getVariableGeneratorFactory()
 				->newGenerator()
-				->addUserVars( $this->mActor )
-				->addTitleVars( $this->mTitle, 'page' )
+				->addUserVars( $user )
+				->addTitleVars( $title, 'page' )
 				->addGenericVars()
 				->getVariableHolder();
 			$vars->setVar( 'action', 'comment' );
@@ -458,7 +470,7 @@ class Comment {
 			$vars->setLazyLoadVar( 'new_size', 'length', [ 'length-var' => 'new_wikitext' ] );
 
 			$rf = AbuseFilterServices::getFilterRunnerFactory();
-			$runner = $rf->newRunner( $user, $this->mTitle, $vars, 'default' );
+			$runner = $rf->newRunner( $user, $title, $vars, 'default' );
 			$status = $runner->run();
 
 			if ( !$status->isOK() ) {

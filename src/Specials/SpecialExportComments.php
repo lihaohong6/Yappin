@@ -72,7 +72,8 @@ class SpecialExportComments extends FormSpecialPage {
 		foreach ( $res as $row ) {
 			if ( $row->yap_page !== $currentPageId ) {
 				if ( $currentArrayOpen ) {
-					echo ']}'; // Close previous comments array and page object
+					// Close previous comments array and page object
+					echo ']}';
 				}
 
 				if ( !$isFirstPage ) {
@@ -117,7 +118,8 @@ class SpecialExportComments extends FormSpecialPage {
 		}
 
 		if ( $currentArrayOpen ) {
-			echo ']}'; // Close the last page object
+			// Close the last page object
+			echo ']}';
 		}
 
 		echo ']';

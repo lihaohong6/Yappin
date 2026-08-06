@@ -85,7 +85,7 @@ class ApiPostComment extends SimpleHandler {
 
 			if ( $parent->isDeleted() ) {
 				throw new LocalizedHttpException(
-					new MessageValue( 'yappin-submit-error-parent-missing', $parentId ), 400 );
+					new MessageValue( 'yappin-submit-error-parent-missing', [ $parentId ] ), 400 );
 			}
 			if ( $parent->getParent() ) {
 				throw new LocalizedHttpException(
@@ -98,7 +98,7 @@ class ApiPostComment extends SimpleHandler {
 		$page = $this->titleFactory->newFromID( $pageId );
 		if ( !$page || !$page->exists() ) {
 			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-page-missing', $pageId ), 400 );
+				new MessageValue( 'yappin-submit-error-page-missing', [ $pageId ] ), 400 );
 		}
 
 		$commentEnabledOnPage = SpecialCommentControl::getControlStatus( $page ) === CommentControlStatus::ENABLED;

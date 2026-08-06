@@ -65,6 +65,14 @@
 		"yappin-manage",
 		"yappin-import"
 	],
+	"GroupPermissions": {
+		"*": {
+			"yappin-comment": true
+		},
+		"sysop": {
+			"yappin-manage": true
+		}
+	},
 	"callback": "MediaWiki\\Extension\\Yappin\\Hooks\\GeneralHookHandlers::onRegistration",
 	"LogTypes": [ "yappin" ],
 	"LogNames": {

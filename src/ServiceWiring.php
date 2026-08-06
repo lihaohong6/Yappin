@@ -2,8 +2,6 @@
 
 namespace MediaWiki\Extension\Yappin;
 
-use MediaWiki\Extension\Yappin\Files\CommentFileService;
-use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 
 /**
@@ -12,14 +10,13 @@ use MediaWiki\MediaWikiServices;
 return [
 	'Yappin.CommentFactory' => static function ( MediaWikiServices $services ): CommentFactory {
 		return new CommentFactory(
-			$services->getDBLoadBalancerFactory()
-		);
-	},
-	'Yappin.CommentFileService' => static function ( MediaWikiServices $services ): CommentFileService {
-		return new CommentFileService(
-			$services->getFileBackendGroup(),
-			$services->getMainConfig()->get( MainConfigNames::UploadDirectory ),
-			$services->getMainConfig()->get( 'YappinFileBackend' ),
+			$services->getDBLoadBalancerFactory(),
+			$services->getActorStore(),
+			$services->getTitleFactory(),
+			$services->getUserFactory(),
+			$services->getParsoidParserFactory(),
+			$services->getHtmlTransformFactory(),
+			$services->getMainConfig()
 		);
 	}
 ];

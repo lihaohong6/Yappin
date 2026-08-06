@@ -88,7 +88,7 @@ class ImportCommentStreams extends Maintenance {
 				$row,
 				$commentTitle,
 				$assocPageId,
-				null, // no parent
+				null,
 				null,
 				$force,
 				$existingKeys
@@ -146,7 +146,8 @@ class ImportCommentStreams extends Maintenance {
 
 			$result = $this->importEntity(
 				$row,
-				null, // replies have no comment-title annotation to strip
+				// replies have no comment-title annotation to strip
+				null,
 				$assocPageId,
 				$parentYappinId,
 				$row->cst_r_reply_page_id,
