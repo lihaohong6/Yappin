@@ -16,7 +16,8 @@ return [
 			$services->getUserFactory(),
 			$services->getParsoidParserFactory(),
 			$services->getHtmlTransformFactory(),
-			$services->getMainConfig()
+			$services->getMainConfig(),
+			$services->getUserIdentityUtils()
 		);
 	}
 ];

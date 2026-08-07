@@ -12,6 +12,7 @@ use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
+use MediaWiki\User\UserIdentityUtils;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;
 
@@ -23,7 +24,8 @@ class CommentFactory {
 		private readonly UserFactory $userFactory,
 		private readonly ParsoidParserFactory $parserFactory,
 		private readonly HtmlTransformFactory $htmlTransformFactory,
-		private readonly Config $config
+		private readonly Config $config,
+		private readonly UserIdentityUtils $userIdentityUtils
 	) {
 	}
 
@@ -40,7 +42,8 @@ class CommentFactory {
 			$this->userFactory,
 			$this->parserFactory,
 			$this->htmlTransformFactory,
-			$this->config
+			$this->config,
+			$this->userIdentityUtils
 		);
 	}
 

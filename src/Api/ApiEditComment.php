@@ -4,7 +4,9 @@ namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Utils;
+use MediaWiki\Permissions\Authority;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
@@ -78,7 +80,7 @@ class ApiEditComment extends SimpleHandler {
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
-		if ( $comment->getActor()->getId() !== $this->getAuthority()->getUser()->getId() ) {
+		if ( !self::isOwnComment( $comment, $auth ) ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-notself' ), 400
 			);
@@ -109,6 +111,18 @@ class ApiEditComment extends SimpleHandler {
 	}
 
 	/**
+	 * Whether the comment was written by the acting user.
+	 *
+	 * @param Comment $comment
+	 * @param Authority $authority
+	 * @return bool
+	 */
+	private static function isOwnComment( Comment $comment, Authority $authority ): bool {
+		$user = $authority->getUser();
+		return $user->isRegistered() && $comment->getActor()->getId() === $user->getId();
+	}
+
+	/**
 	 * @return Response
 	 * @throws HttpException
 	 */
@@ -126,8 +140,7 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
-		// Compare id since the username can happen to be the same due to an import
-		$ownComment = $comment->getActor()->getId() === $this->getAuthority()->getUser()->getId();
+		$ownComment = self::isOwnComment( $comment, $this->getAuthority() );
 		$isMod = Utils::canUserModerate( $this->getAuthority() );
 
 		if ( $ownComment && $delete === true ) {

@@ -8,6 +8,7 @@ use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
+use MediaWiki\User\TempUser\TempUserCreator;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -17,8 +18,17 @@ class ApiVoteComment extends SimpleHandler {
 	 */
 	private CommentFactory $commentFactory;
 
-	public function __construct( CommentFactory $commentFactory ) {
+	/**
+	 * @var TempUserCreator
+	 */
+	private TempUserCreator $tempUserCreator;
+
+	public function __construct(
+		CommentFactory $commentFactory,
+		TempUserCreator $tempUserCreator
+	) {
 		$this->commentFactory = $commentFactory;
+		$this->tempUserCreator = $tempUserCreator;
 	}
 
 	/**
@@ -53,7 +63,16 @@ class ApiVoteComment extends SimpleHandler {
 			);
 		}
 
+		// Voting deliberately does not auto-create a temporary account: it is a one-click action,
+		// and quietly registering an account behind it would surprise the user. Once temporary
+		// accounts are enabled there is then nothing left to attribute an anonymous vote to, since
+		// ActorStore refuses to create IP actors, so anons cannot vote on such a wiki.
 		$user = $this->getAuthority()->getUser();
+		if ( $this->tempUserCreator->isEnabled() && !$user->isRegistered() ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-rating-error-anon' ), 403
+			);
+		}
 
 // if ( $comment->getUser()->getId() === $user->getId() ) {
 //			throw new HttpException( "Cannot vote on user's own comment", 400 );

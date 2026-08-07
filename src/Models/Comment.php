@@ -16,6 +16,7 @@ use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
+use MediaWiki\User\UserIdentityUtils;
 use Telepedia\UserProfileV2\Avatar\UserProfileV2Avatar;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\LBFactory;
@@ -81,7 +82,8 @@ class Comment {
 		private readonly UserFactory $userFactory,
 		private readonly ParsoidParserFactory $parserFactory,
 		private readonly HtmlTransformFactory $htmlTransformFactory,
-		private readonly Config $config
+		private readonly Config $config,
+		private readonly UserIdentityUtils $userIdentityUtils
 	) {
 		$this->dbw = $this->lbFactory->getPrimaryDatabase();
 	}
@@ -551,6 +553,7 @@ class Comment {
 			'user' => [
 				'name' => $this->getActor()->getName(),
 				'anon' => !$this->getActor()->isRegistered(),
+				'temp' => $this->userIdentityUtils->isTemp( $this->getActor() ),
 				'avatar' => $avatarUrl,
 			],
 			'parent' => $this->mParentId,

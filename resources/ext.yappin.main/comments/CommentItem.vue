@@ -7,7 +7,12 @@
 			<div class="comment-body">
 				<div class="comment-header">
 					<div class="comment-author-wrapper">
-						<a v-if="!comment.user.anon" class="comment-author" :href="userPageLink">
+						<a
+							v-if="!comment.user.anon"
+							class="comment-author mw-userlink"
+							:class="{ 'mw-tempuserlink': comment.user.temp }"
+							:href="userPageLink"
+						>
 							{{ comment.user.name }}
 						</a>
 						<div v-else class="comment-author">
@@ -211,17 +216,19 @@ module.exports = exports = defineComponent( {
 			} ).then( ( data ) => {
 				this.$props.comment.deleted = data.deleted;
 			} ).fail( ( _, result ) => {
-				if ( result.xhr.responseJSON && Object.prototype.hasOwnProperty.call(
-					result.xhr.responseJSON, 'messageTranslations' ) ) {
-					if ( result.xhr.responseJSON.errorKey === 'yappin-submit-error-spam' ) {
+				const json = result.xhr && result.xhr.responseJSON;
+				let error;
+				if ( json && Object.prototype.hasOwnProperty.call(
+					json, 'messageTranslations' ) ) {
+					if ( json.errorKey === 'yappin-submit-error-spam' ) {
 						// If the comment was rejected for spam/abuse, add a small cooldown
 						this.$data.store.globalCooldown = 10;
 					}
 
-					if ( config.wgContentLanguage in result.xhr.responseJSON.messageTranslations ) {
-						error = result.xhr.responseJSON.messageTranslations[ config.wgContentLanguage ];
+					if ( config.wgContentLanguage in json.messageTranslations ) {
+						error = json.messageTranslations[ config.wgContentLanguage ];
 					} else {
-						error = result.xhr.responseJSON.messageTranslations.en
+						error = json.messageTranslations.en;
 					}
 				} else {
 					error = mw.message( 'unknown-error' ).text();

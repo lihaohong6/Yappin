@@ -3,11 +3,13 @@
 namespace MediaWiki\Extension\Yappin\Api;
 
 use MediaWiki\Config\Config;
+use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
 use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
+use MediaWiki\Language\FormatterFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Notification\RecipientSet;
 use MediaWiki\Notification\Types\WikiNotification;
@@ -17,8 +19,10 @@ use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
+use MediaWiki\Status\StatusFormatter;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
+use MediaWiki\User\TempUser\TempUserCreator;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
@@ -40,14 +44,28 @@ class ApiPostComment extends SimpleHandler {
 	 */
 	private Config $config;
 
+	/**
+	 * @var TempUserCreator
+	 */
+	private TempUserCreator $tempUserCreator;
+
+	/**
+	 * @var StatusFormatter
+	 */
+	private StatusFormatter $statusFormatter;
+
 	public function __construct(
 		TitleFactory $titleFactory,
 		CommentFactory $commentFactory,
-		Config $config
+		Config $config,
+		TempUserCreator $tempUserCreator,
+		FormatterFactory $formatterFactory
 	) {
 		$this->titleFactory = $titleFactory;
 		$this->commentFactory = $commentFactory;
 		$this->config = $config;
+		$this->tempUserCreator = $tempUserCreator;
+		$this->statusFormatter = $formatterFactory->getStatusFormatter( RequestContext::getMain() );
 	}
 
 	/**
@@ -107,10 +125,18 @@ class ApiPostComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400 );
 		}
 
+		// Anonymous users get a temporary account, if the wiki is configured to create them
+		$user = Utils::acquireActingUser(
+			$auth,
+			$this->getSession()->getRequest(),
+			$this->tempUserCreator,
+			$this->statusFormatter
+		);
+
 		// Create a new comment
 		$comment = $this->commentFactory->newEmpty()
 			->setTitle( $page )
-			->setActor( $this->getAuthority()->getUser() )
+			->setActor( $user )
 			->setParent( $parent );
 
 		if ( $html ) {
@@ -132,7 +158,7 @@ class ApiPostComment extends SimpleHandler {
 
 		$comment->save();
 
-		$this->notifyComments( $auth->getUser(), $parent, $page, $comment );
+		$this->notifyComments( $user, $parent, $page, $comment );
 
 		return $this->getResponseFactory()->createJson( [
 			'comment' => $comment->toArray()

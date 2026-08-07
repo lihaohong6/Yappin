@@ -38,6 +38,10 @@ const { cdxIconUpTriangle, cdxIconDownTriangle } = require( '../icons.json' );
 
 const api = new mw.Rest();
 
+const config = mw.config.get( [
+	'wgContentLanguage'
+] );
+
 module.exports = exports = defineComponent( {
 	name: 'CommentRating',
 	components: {
@@ -78,9 +82,20 @@ module.exports = exports = defineComponent( {
 				this.$props.comment.rating = data.comment.rating;
 			} ).always( () => {
 				this.$data.waiting = false;
-			} ).fail( () => {
+			} ).fail( ( _, result ) => {
 				// Reset the UI state back to the previous value if the API call failed
 				this.$props.comment.userRating = oldValue
+
+				const json = result.xhr && result.xhr.responseJSON;
+				let error;
+				if ( json && json.messageTranslations ) {
+					error = config.wgContentLanguage in json.messageTranslations ?
+						json.messageTranslations[ config.wgContentLanguage ] :
+						json.messageTranslations.en;
+				} else {
+					error = mw.message( 'unknown-error' ).text();
+				}
+				mw.notify( error, { type: 'error', tag: 'vote-comment-error' } );
 			} )
 		}
 	},
