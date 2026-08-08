@@ -85,7 +85,7 @@ class CommentsPager {
 		}
 
 		$this->commentFactory = $services->getService( 'Yappin.CommentFactory' );
-		$this->db = $services->getDBLoadBalancerFactory()->getPrimaryDatabase();
+		$this->db = $services->getDBLoadBalancerFactory()->getReplicaDatabase();
 		$this->actorStore = $services->getActorStore();
 
 		$this->includeDeleted = !empty( $options['includeDeleted'] );

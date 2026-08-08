@@ -113,7 +113,7 @@ class SpecialCommentControl extends SpecialPage {
 	}
 
 	private function showCurrentRestrictions() {
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
+		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 
 		$res = $dbr->newSelectQueryBuilder()->select(
 			[
@@ -152,7 +152,7 @@ class SpecialCommentControl extends SpecialPage {
 	public static function getControlStatus( Title $title ): CommentControlStatus {
 		$id = $title->getArticleID();
 
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
+		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 		$cond = [ 'yc_page' => $id ];
 		$res = $dbr->newSelectQueryBuilder()
 				   ->select( [ "yc_restriction" ] )
@@ -171,7 +171,7 @@ class SpecialCommentControl extends SpecialPage {
 
 	private function setControlStatus( Title $title, CommentControlStatus $status ): void {
 		$id = $title->getArticleID();
-		$dbw = MediaWikiServices::getInstance()->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		$dbw = MediaWikiServices::getInstance()->getConnectionProvider()->getPrimaryDatabase();
 		if ( $status === CommentControlStatus::ENABLED ) {
 			$dbw->newDeleteQueryBuilder()->deleteFrom( 'yappin_control' )->where( [
 				'yc_page' => $id,

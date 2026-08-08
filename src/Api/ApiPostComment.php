@@ -79,6 +79,11 @@ class ApiPostComment extends SimpleHandler {
 			throw new LocalizedHttpException( $canComment, 403 );
 		}
 
+		if ( $this->config->get( 'YappinReadOnly' ) ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
+		}
+
 		$body = $this->getValidatedBody();
 		$pageId = (int)$body[ 'pageid' ];
 		$parentId = (int)$body[ 'parentid' ];
@@ -214,7 +219,7 @@ class ApiPostComment extends SimpleHandler {
 		if ( $parent ) {
 			$parentActor = $parent->getActor();
 			if ( $parentActor->getId() !== 0 ) {
-				$parentUser = $userFactory->newFromActorId( $parentActor->getId() );
+				$parentUser = $userFactory->newFromId( $parentActor->getId() );
 				if ( $parentUser->getId() !== $notifier->getId() ) {
 					$recipients[$parentUser->getId()] = [
 						'type' => 'yappin-reply'

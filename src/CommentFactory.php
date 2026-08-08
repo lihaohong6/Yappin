@@ -95,7 +95,7 @@ class CommentFactory {
 	 * @throws InvalidArgumentException
 	 */
 	public function newFromId( $id ) {
-		$db = $this->lbFactory->getPrimaryDatabase();
+		$db = $this->lbFactory->getReplicaDatabase();
 		$row = $db->newSelectQueryBuilder()
 			->fields( '*' )
 			->from( 'yappin_comment' )

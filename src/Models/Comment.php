@@ -69,6 +69,9 @@ class Comment {
 	/** @var IDatabase */
 	private $dbw;
 
+	/** @var IDatabase */
+	private $dbr;
+
 	/**
 	 * Comment objects should be obtained from CommentFactory, which supplies these services.
 	 *
@@ -86,6 +89,7 @@ class Comment {
 		private readonly UserIdentityUtils $userIdentityUtils
 	) {
 		$this->dbw = $this->lbFactory->getPrimaryDatabase();
+		$this->dbr = $this->lbFactory->getReplicaDatabase();
 	}
 
 	/**
@@ -134,7 +138,7 @@ class Comment {
 			return $this->mActor;
 		}
 
-		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbw );
+		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbr );
 
 		return $this->mActor;
 	}
@@ -201,7 +205,7 @@ class Comment {
 			return $this->mDeletedActor;
 		}
 
-		$this->mDeletedActor = $this->actorStore->getActorById( $this->mDeletedActorId, $this->dbw );
+		$this->mDeletedActor = $this->actorStore->getActorById( $this->mDeletedActorId, $this->dbr );
 		return $this->mDeletedActor;
 	}
 

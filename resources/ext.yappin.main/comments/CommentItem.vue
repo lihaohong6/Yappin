@@ -46,7 +46,7 @@
 					</div>
 					<div class="comment-actions">
 						<comment-action
-							v-if="!store.readOnly && !comment.deleted && comment.ours"
+							v-if="!store.isReadOnly && !comment.deleted && comment.ours"
 							class="comment-action-edit"
 							:disabled="store.isEditing === comment.id"
 							:icon="cdxIconEdit"
@@ -54,7 +54,7 @@
 							:title="$i18n( 'yappin-action-label-edit' ).text()"
 						></comment-action>
 						<comment-action
-							v-if="!store.readOnly && ( comment.ours && comment.deleted === null ) || store.isMod"
+							v-if="!store.isReadOnly && ( comment.ours && comment.deleted === null ) || store.isMod"
 							class="comment-action-delete"
 							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
 							:on-click="deleteComment"
@@ -92,7 +92,7 @@
 		</div>
 		<div v-if="hasFooterContent" class="comment-footer">
 			<button
-				v-if="!isWritingReply && !comment.deleted"
+				v-if="!store.isReadOnly && !isWritingReply && !comment.deleted"
 				class="comment-reply-button"
 				@click="isWritingReply = true"
 			>

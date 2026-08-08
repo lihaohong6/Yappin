@@ -2,14 +2,14 @@
 	<toolbar></toolbar>
 	<button
 		class="comment-input-placeholder"
-		v-if="!store.isSpecialComments"
+		v-if="!store.isSpecialComments && !store.isReadOnly"
 		v-show="!isWritingTopLevelComment"
 		@click="isWritingTopLevelComment = true"
 	>
 		<span>{{ $i18n( 'yappin-post-placeholder-top-level' ).text() }}</span>
 	</button>
 	<new-comment-input
-		v-if="store.singleComment === null"
+		v-if="store.singleComment === null && !store.isReadOnly"
 		:is-writing-comment="isWritingTopLevelComment"
 		:on-cancel="() => isWritingTopLevelComment = false"
 	></new-comment-input>
@@ -42,7 +42,8 @@ module.exports = exports = defineComponent( {
 	mounted() {
 		const self = this;
 		// When the app first loads, determine whether we should be displaying the comments in a read-only form
-		let readOnly = mw.config.get( 'wgYappin' ).readOnly;
+		const readOnly = mw.config.get( 'wgYappin' ).readOnly;
+		const pageReadOnly = mw.config.get( 'wgYappinPageReadOnly' ) || false;
 
 		const params = new URLSearchParams( window.location.search );
 
@@ -59,7 +60,7 @@ module.exports = exports = defineComponent( {
 			this.$data.store.filterByUser = targetUser.charAt(0).toUpperCase() + targetUser.substring(1);
 		}
 
-		this.$data.store.isReadOnly = readOnly;
+		this.$data.store.isReadOnly = readOnly || pageReadOnly;
 
 		setInterval( () => {
 			if ( self.$data.store.globalCooldown > 0 ) {

@@ -18,17 +18,17 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentityLookup;
 use MediaWiki\User\UserIdentityValue;
-use Wikimedia\Rdbms\DBConnRef;
+use Wikimedia\Rdbms\IDatabase;
 
 class SpecialImportComments extends FormSpecialPage {
-	private DBConnRef $dbr;
+	private IDatabase $dbr;
 	private ParsoidParser $parser;
 	private UserIdentityLookup $userLookup;
 
 	public function __construct() {
 		parent::__construct( 'ImportComments', 'yappin-import' );
 		$services = MediaWikiServices::getInstance();
-		$this->dbr = $services->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_REPLICA );
+		$this->dbr = $services->getConnectionProvider()->getReplicaDatabase();
 		$this->parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
 		$this->userLookup = MediaWikiServices::getInstance()->getUserIdentityLookup();
 	}
@@ -90,7 +90,7 @@ class SpecialImportComments extends FormSpecialPage {
 	private function doImport( array $json, bool $skipExisting, bool $attachUsers ): void {
 		$output = $this->getOutput();
 		$services = MediaWikiServices::getInstance();
-		$dbw = $services->getDBLoadBalancer()->getMaintenanceConnectionRef( DB_PRIMARY );
+		$dbw = $services->getConnectionProvider()->getPrimaryDatabase();
 		$actorStore = $services->getActorStore();
 
 		$totalImported = 0;
@@ -171,7 +171,7 @@ class SpecialImportComments extends FormSpecialPage {
 	/**
 	 * @param Title $title
 	 * @param array $commentsList
-	 * @param DBConnRef $dbw
+	 * @param IDatabase $dbw
 	 * @param ActorStore $actorStore
 	 * @param OutputPage $output
 	 * @param bool $skipExisting
@@ -181,7 +181,7 @@ class SpecialImportComments extends FormSpecialPage {
 	public function importPageComments(
 		Title $title,
 		array $commentsList,
-		DBConnRef $dbw,
+		IDatabase $dbw,
 		ActorStore $actorStore,
 		OutputPage $output,
 		bool $skipExisting,
@@ -232,16 +232,17 @@ class SpecialImportComments extends FormSpecialPage {
 				$html = $parserOutput->runOutputPipeline( $parserOpts )->getRawText();
 
 				$username = $commentData['username'] ?? null;
-				$actorUser = null;
-				if ( $username !== null ) {
-					if ( $attachUsers ) {
-						$actorUser = $this->userLookup->getUserIdentityByName( $username );
-					}
-					if ( $actorUser === null ) {
-						$actorUser = UserIdentityValue::newExternal( 'imported', $username );
-					}
+				if ( $username === null ) {
+					$username = 'Unknown user';
 				}
-				$actorId = $actorUser ? $actorStore->acquireActorId( $actorUser, $dbw ) : 0;
+				$actorUser = null;
+				if ( $attachUsers ) {
+					$actorUser = $this->userLookup->getUserIdentityByName( $username );
+				}
+				if ( $actorUser === null ) {
+					$actorUser = UserIdentityValue::newExternal( 'imported', $username );
+				}
+				$actorId = $actorStore->acquireActorId( $actorUser, $dbw );
 
 				// Note that we should never use the old comment id.
 				$row = [

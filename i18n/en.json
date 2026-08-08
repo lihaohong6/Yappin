@@ -46,6 +46,7 @@
 	"yappin-rating-error-invalid": "Invalid value provided for rating.",
 	"yappin-rating-error-anon": "You must be logged in to vote on a comment.",
 	"yappin-submit-error-comments-disabled": "Comments cannot be submitted for this page.",
+	"yappin-submit-error-readonly": "Comments are read-only and new comments or edits cannot be submitted.",
 	"yappin-submit-cooldown": "Wait ($1)",
 	"yappin-edited": "(edited $1)",
 	"yappin-action-label-edit": "Edit comment",

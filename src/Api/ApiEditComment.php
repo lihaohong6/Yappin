@@ -3,6 +3,7 @@
 namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Utils;
@@ -26,9 +27,12 @@ class ApiEditComment extends SimpleHandler {
 	 */
 	private ActorStore $actorStore;
 
-	public function __construct( CommentFactory $commentFactory, ActorStore $actorStore ) {
+	private Config $config;
+
+	public function __construct( CommentFactory $commentFactory, ActorStore $actorStore, Config $config ) {
 		$this->commentFactory = $commentFactory;
 		$this->actorStore = $actorStore;
+		$this->config = $config;
 	}
 
 	/**
@@ -53,6 +57,11 @@ class ApiEditComment extends SimpleHandler {
 		$canComment = Utils::canUserComment( $auth );
 		if ( $canComment !== true ) {
 			throw new LocalizedHttpException( $canComment, 403 );
+		}
+
+		if ( $this->config->get( 'YappinReadOnly' ) ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
 		}
 
 		$body = $this->getValidatedBody();

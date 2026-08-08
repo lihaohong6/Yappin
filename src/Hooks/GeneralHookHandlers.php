@@ -47,9 +47,19 @@ class GeneralHookHandlers implements
 			return;
 		}
 
-		if ( SpecialCommentControl::getControlStatus( $title ) === CommentControlStatus::DISABLED ) {
+		$status = SpecialCommentControl::getControlStatus( $title );
+		if ( $status === CommentControlStatus::DISABLED ) {
 			return;
 		}
+
+		$pageReadOnly = $status === CommentControlStatus::READ_ONLY;
+		if ( !$pageReadOnly && Utils::canUserComment( $out->getUser() ) !== true ) {
+			$pageReadOnly = true;
+		}
+
+		$out->addJsConfigVars( [
+			'wgYappinPageReadOnly' => $pageReadOnly,
+		] );
 
 		Utils::loadCommentsModule( $out, $this->config );
 	}

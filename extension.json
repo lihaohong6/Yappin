@@ -149,7 +149,8 @@
 			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiEditComment",
 			"services": [
 				"Yappin.CommentFactory",
-				"ActorStore"
+				"ActorStore",
+				"MainConfig"
 			]
 		},
 		{
