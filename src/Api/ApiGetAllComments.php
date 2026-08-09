@@ -12,6 +12,7 @@ use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserNameUtils;
 use Wikimedia\ParamValidator\ParamValidator;
+use Wikimedia\ParamValidator\TypeDef\NumericDef;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\LBFactory;
 
@@ -119,10 +120,6 @@ class ApiGetAllComments extends SimpleHandler {
 		$childComments = [];
 
 		$limit = (int)$params[ 'limit' ];
-		if ( $limit > 100 ) {
-			// Do not allow the limit to be above 100
-			$limit = 100;
-		}
 
 		$continue = $params[ 'continue' ];
 
@@ -181,7 +178,10 @@ class ApiGetAllComments extends SimpleHandler {
 				self::PARAM_SOURCE => 'query',
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => false,
-				ParamValidator::PARAM_DEFAULT => 10
+				ParamValidator::PARAM_DEFAULT => 10,
+				NumericDef::PARAM_MIN => 1,
+				NumericDef::PARAM_MAX => 100,
+				NumericDef::PARAM_IGNORE_RANGE => true
 			],
 			'continue' => [
 				self::PARAM_SOURCE => 'query',
