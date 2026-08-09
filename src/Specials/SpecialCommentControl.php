@@ -151,13 +151,15 @@ class SpecialCommentControl extends SpecialPage {
 
 	public static function getControlStatus( Title $title ): CommentControlStatus {
 		$id = $title->getArticleID();
+		if ( !$id ) {
+			return CommentControlStatus::ENABLED;
+		}
 
 		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
-		$cond = [ 'yc_page' => $id ];
 		$res = $dbr->newSelectQueryBuilder()
-				   ->select( [ "yc_restriction" ] )
+				   ->select( [ 'yc_restriction' ] )
 				   ->from( 'yappin_control' )
-				   ->where( $cond )
+				   ->where( [ 'yc_page' => $id ] )
 				   ->caller( __METHOD__ )
 				   ->fetchResultSet()
 				   ->fetchRow();
@@ -166,7 +168,7 @@ class SpecialCommentControl extends SpecialPage {
 			return CommentControlStatus::ENABLED;
 		}
 
-		return CommentControlStatus::from( $res['yc_restriction'] );
+		return CommentControlStatus::from( (int)$res['yc_restriction'] );
 	}
 
 	private function setControlStatus( Title $title, CommentControlStatus $status ): void {

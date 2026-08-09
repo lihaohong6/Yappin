@@ -66,7 +66,7 @@ class CommentFactory {
 		$comment->mId = (int)$row->yap_id;
 		$comment->mPageId = (int)$row->yap_page;
 
-		if ( $user !== null && $user->getId() !== 0 ) {
+		if ( $user !== null ) {
 			$comment->setActor( $user, (int)$row->yap_actor );
 		} else {
 			$comment->mActorId = (int)$row->yap_actor;

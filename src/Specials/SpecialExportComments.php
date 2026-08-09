@@ -10,6 +10,7 @@ use MediaWiki\SpecialPage\FormSpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\ExternalUserNames;
+use Wikimedia\Timestamp\TimestampFormat;
 
 class SpecialExportComments extends FormSpecialPage {
 	private ActorStore $actorStore;
@@ -56,9 +57,13 @@ class SpecialExportComments extends FormSpecialPage {
 		}
 
 		$res = $dbr->newSelectQueryBuilder()
-				   ->select( [ 'c.*', 'page_title', 'page_namespace', 'page_id' ] )
+				   ->select( [
+					   'c.*', 'page_title', 'page_namespace', 'page_id',
+					   'actor_id', 'actor_name', 'actor_user'
+				   ] )
 				   ->from( 'yappin_comment', 'c' )
 				   ->join( 'page', null, 'yap_page = page_id' )
+				   ->leftJoin( 'actor', null, 'actor_id = yap_actor' )
 				   ->where( $conditions )
 				   ->orderBy( 'yap_page' )
 				   ->caller( __METHOD__ )
@@ -99,16 +104,18 @@ class SpecialExportComments extends FormSpecialPage {
 				echo ',';
 			}
 
-			$actorIdentity = $this->actorStore->getActorById( (int)$row->yap_actor, $dbr );
+			$actorIdentity = (int)$row->actor_id !== 0
+				? $this->actorStore->newActorFromRow( $row )
+				: $this->actorStore->getActorById( (int)$row->yap_actor, $dbr );
 			$rawName = $actorIdentity?->getName();
 			$username = $rawName !== null ? ExternalUserNames::getLocal( $rawName ) : null;
 
 			$commentObj = [
 				'id' => (int)$row->yap_id,
 				'parentId' => $row->yap_parent ? (int)$row->yap_parent : null,
-				'timestamp' => wfTimestamp( TS_MW, $row->yap_timestamp ),
+				'timestamp' => wfTimestamp( TimestampFormat::MW, $row->yap_timestamp ),
 				'editedTimestamp' => $row->yap_edited_timestamp
-					? wfTimestamp( TS_MW, $row->yap_edited_timestamp ) : null,
+					? wfTimestamp( TimestampFormat::MW, $row->yap_edited_timestamp ) : null,
 				'wikitext' => $row->yap_wikitext,
 				'username' => $username
 			];
