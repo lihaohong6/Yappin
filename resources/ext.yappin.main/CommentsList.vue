@@ -39,7 +39,7 @@
 			v-else-if="error"
 			class="mw-message-box mw-message-box-error"
 		>
-			{{ $i18n( 'yappin-load-error', error ).text() }}
+			{{ error.text || $i18n( 'yappin-load-error', error.code ).text() }}
 		</div>
 		<div
 			v-else-if="initialLoadCompleted && !store.comments.length"
@@ -52,7 +52,7 @@
 
 <script>
 const { defineComponent } = require( 'vue' );
-const { isElementInView } = require( './util.js' );
+const { isElementInView, extractApiError } = require( './util.js' );
 const store = require( './store.js' );
 const Comment = require( './comment.js' );
 const CommentItem = require( './comments/CommentItem.vue' );
@@ -117,11 +117,9 @@ module.exports = exports = defineComponent( {
 						}
 					} )
 					.fail( ( _, data ) => {
-						if ( data && data.xhr && data.xhr.status ) {
-							this.$data.error = data.xhr.status;
-						} else {
-							this.$data.error = true;
-						}
+						this.$data.error = extractApiError( data );
+						// XHR reports 0 when the request never reached the server
+						this.$data.error.code = ( data && data.xhr && data.xhr.status ) || 0;
 					} )
 					.always( () => {
 						this.$data.initialLoadCompleted = true;
@@ -165,11 +163,9 @@ module.exports = exports = defineComponent( {
 						this.$data.moreContinue = res.query.continue;
 					} )
 					.fail( ( _, data ) => {
-						if ( data && data.xhr && data.xhr.status ) {
-							this.$data.error = data.xhr.status;
-						} else {
-							this.$data.error = true;
-						}
+						this.$data.error = extractApiError( data );
+						// XHR reports 0 when the request never reached the server
+						this.$data.error.code = ( data && data.xhr && data.xhr.status ) || 0;
 					} )
 					.always( () => {
 						if ( this.$data.initialLoadCompleted !== true ) {

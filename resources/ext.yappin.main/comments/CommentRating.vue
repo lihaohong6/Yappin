@@ -35,12 +35,9 @@ const store = require( '../store.js' );
 const { defineComponent, ref } = require( 'vue' );
 const { CdxIcon } = require( '../codex.js' );
 const { cdxIconUpTriangle, cdxIconDownTriangle } = require( '../icons.json' );
+const { extractApiError } = require( '../util.js' );
 
 const api = new mw.Rest();
-
-const config = mw.config.get( [
-	'wgContentLanguage'
-] );
 
 module.exports = exports = defineComponent( {
 	name: 'CommentRating',
@@ -86,16 +83,9 @@ module.exports = exports = defineComponent( {
 				// Reset the UI state back to the previous value if the API call failed
 				this.$props.comment.userRating = oldValue
 
-				const json = result.xhr && result.xhr.responseJSON;
-				let error;
-				if ( json && json.messageTranslations ) {
-					error = config.wgContentLanguage in json.messageTranslations ?
-						json.messageTranslations[ config.wgContentLanguage ] :
-						json.messageTranslations.en;
-				} else {
-					error = mw.message( 'unknown-error' ).text();
-				}
-				mw.notify( error, { type: 'error', tag: 'vote-comment-error' } );
+				const { text } = extractApiError( result );
+				mw.notify( text || mw.message( 'unknown-error' ).text(),
+					{ type: 'error', tag: 'vote-comment-error' } );
 			} )
 		}
 	},

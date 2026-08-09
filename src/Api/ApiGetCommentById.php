@@ -111,6 +111,13 @@ class ApiGetCommentById extends SimpleHandler {
 			}
 		}
 
+		if ( $parent === null ) {
+			// Parent deleted and is not visible to the user.
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
+			);
+		}
+
 		return $this->getResponseFactory()->createJson( [
 			'comment' => array_merge( $parent, [
 				'children' => $childComments

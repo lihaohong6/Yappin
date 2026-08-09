@@ -121,6 +121,7 @@ const { CdxIcon } = require( '../codex.js' );
 const {
 	cdxIconTrash, cdxIconLink, cdxIconEdit, cdxIconRestore, cdxIconShare
 } = require( '../icons.json' );
+const { extractApiError } = require( '../util.js' );
 
 const api = new mw.Rest();
 
@@ -216,25 +217,16 @@ module.exports = exports = defineComponent( {
 			} ).then( ( data ) => {
 				this.$props.comment.deleted = data.deleted;
 			} ).fail( ( _, result ) => {
-				const json = result.xhr && result.xhr.responseJSON;
-				let error;
-				if ( json && Object.prototype.hasOwnProperty.call(
-					json, 'messageTranslations' ) ) {
-					if ( json.errorKey === 'yappin-submit-error-spam' ) {
-						// If the comment was rejected for spam/abuse, add a small cooldown
-						this.$data.store.globalCooldown = 10;
-					}
-
-					if ( config.wgContentLanguage in json.messageTranslations ) {
-						error = json.messageTranslations[ config.wgContentLanguage ];
-					} else {
-						error = json.messageTranslations.en;
-					}
-				} else {
-					error = mw.message( 'unknown-error' ).text();
+				const { key, text } = extractApiError( result );
+				if ( key === 'yappin-submit-error-spam' ) {
+					// If the comment was rejected for spam/abuse, add a small cooldown
+					this.$data.store.globalCooldown = 10;
+				}
+				if ( text === null ) {
 					console.log( result );
 				}
-				mw.notify( error, { type: 'error', tag: 'post-comment-error' } );
+				mw.notify( text || mw.message( 'unknown-error' ).text(),
+					{ type: 'error', tag: 'post-comment-error' } );
 			} )
 		},
 		linkComment() {

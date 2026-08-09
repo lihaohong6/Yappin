@@ -23,7 +23,34 @@ const isElementInView = ( el ) => {
 	);
 };
 
+/**
+ * Extract the localized error message from a failed mw.Rest request.
+ *
+ * Errors thrown as a LocalizedHttpException carry an `errorKey` and a set of
+ * `messageTranslations`. Anything else — network failures, errors produced by a proxy
+ * rather than MediaWiki — has neither, in which case both returned properties are null
+ * and the caller should fall back to a message of its own.
+ *
+ * @param {Object} result the second argument jQuery passes to a fail() handler
+ * @return {{key: ?string, text: ?string}}
+ */
+const extractApiError = ( result ) => {
+	const json = result && result.xhr && result.xhr.responseJSON;
+
+	if ( !json || !json.messageTranslations ) {
+		return { key: null, text: null };
+	}
+
+	const lang = mw.config.get( 'wgUserLanguage' );
+
+	return {
+		key: json.errorKey || null,
+		text: json.messageTranslations[ lang ] || json.messageTranslations.en || null
+	};
+};
+
 module.exports = {
 	SORT_OPTIONS,
-	isElementInView
+	isElementInView,
+	extractApiError
 };
