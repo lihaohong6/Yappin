@@ -6,6 +6,8 @@ use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
+use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
+use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\Rest\HttpException;
@@ -89,6 +91,18 @@ class ApiEditComment extends SimpleHandler {
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
 		}
+
+		// Editing must respect the same page-level restrictions as posting.
+		$page = $comment->getTitle();
+		if ( !$page
+			|| !Utils::isCommentsEnabled( $this->config, $page )
+			|| SpecialCommentControl::getControlStatus( $page ) !== CommentControlStatus::ENABLED
+		) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400
+			);
+		}
+
 		if ( !self::isOwnComment( $comment, $auth ) ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-notself' ), 400
