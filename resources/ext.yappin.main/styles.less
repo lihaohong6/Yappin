@@ -61,8 +61,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		display: flex;
 		align-items: center;
 		gap: 1em;
-		margin-top: 0.5em;
-		margin-left: 0.5em;
+		margin: 0.25em 0;
 
 		button, a {
 			font-weight: 200;
@@ -107,7 +106,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 	.ext-comments-comment-item {
 		display: flex;
 		flex-direction: column;
-		padding: 0.5em;
+		padding: 0.25em 0.5em;
 		border: 1px solid var(--comments-border);
 		box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
 
@@ -154,6 +153,10 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		.comment-edited {
 			font-weight: 100;
 			color: var(--comments-muted);
+		}
+
+		.comment-avatar {
+			margin-top: 0.2em;
 		}
 
 		.comment-body {
@@ -208,7 +211,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 	}
 
 	.comment-preview {
-		margin-top: 4px;
+		margin: 0.25em 0;
 
 		.comment-preview-content {
 			// In case the preview is empty
@@ -332,7 +335,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 
 		.comment-input-actions {
 			display: flex;
-			margin: 0.5em 0 0 0;
+			margin: 0.5em 0 0.25em 0;
 			gap: 0.5em;
 		}
 	}
