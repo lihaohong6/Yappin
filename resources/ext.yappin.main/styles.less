@@ -164,8 +164,12 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		}
 
 		.comment-content {
-			/* Prevent comments from escaping comment box with position: absolute */
+			/* Prevent comments from escaping comment box with position: absolute or fixed */
 			position: relative;
+			contain: layout paint;
+			/* Cap runaway height; scrolling also keeps wide content reachable */
+			max-height: 80vh;
+			overflow-y: auto;
 			/* Prevent long comments from overflowing the container */
 			overflow-wrap: anywhere;
 
