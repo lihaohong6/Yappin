@@ -19,18 +19,30 @@ use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentityLookup;
 use MediaWiki\User\UserIdentityValue;
 use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IReadableDatabase;
 
 class SpecialImportComments extends FormSpecialPage {
-	private IDatabase $dbr;
+	private IReadableDatabase $dbr;
 	private ParsoidParser $parser;
 	private UserIdentityLookup $userLookup;
+	private ActorStore $actorStore;
 
 	public function __construct() {
-		parent::__construct( 'ImportComments', 'yappin-import' );
+		if ( version_compare( MW_VERSION, '1.46.0', '<' ) ) {
+			parent::__construct( 'ImportComments', 'yappin-import' );
+		} else {
+			parent::__construct( 'ImportComments' );
+		}
 		$services = MediaWikiServices::getInstance();
 		$this->dbr = $services->getConnectionProvider()->getReplicaDatabase();
-		$this->parser = MediaWikiServices::getInstance()->getParsoidParserFactory()->create();
-		$this->userLookup = MediaWikiServices::getInstance()->getUserIdentityLookup();
+		$this->parser = $services->getParsoidParserFactory()->create();
+		$this->userLookup = $services->getUserIdentityLookup();
+		$this->actorStore = $services->getActorStore();
+	}
+
+	/** @inheritDoc */
+	public function getRestriction(): string {
+		return 'yappin-import';
 	}
 
 	/** @inheritDoc */
@@ -91,7 +103,6 @@ class SpecialImportComments extends FormSpecialPage {
 		$output = $this->getOutput();
 		$services = MediaWikiServices::getInstance();
 		$dbw = $services->getConnectionProvider()->getPrimaryDatabase();
-		$actorStore = $services->getActorStore();
 
 		$totalImported = 0;
 		$totalSkipped = 0;
@@ -130,7 +141,6 @@ class SpecialImportComments extends FormSpecialPage {
 				$title,
 				$pageData['comments'],
 				$dbw,
-				$actorStore,
 				$output,
 				$skipExisting,
 				$attachUsers
@@ -182,7 +192,6 @@ class SpecialImportComments extends FormSpecialPage {
 		Title $title,
 		array $commentsList,
 		IDatabase $dbw,
-		ActorStore $actorStore,
 		OutputPage $output,
 		bool $skipExisting,
 		bool $attachUsers
@@ -242,7 +251,7 @@ class SpecialImportComments extends FormSpecialPage {
 				if ( $actorUser === null ) {
 					$actorUser = UserIdentityValue::newExternal( 'imported', $username );
 				}
-				$actorId = $actorStore->acquireActorId( $actorUser, $dbw );
+				$actorId = $this->actorStore->acquireActorId( $actorUser, $dbw );
 
 				// Note that we should never use the old comment id.
 				$row = [
