@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Yappin;
 
+use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\ActorStore;
@@ -9,6 +10,8 @@ use stdClass;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\UnionQueryBuilder;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
+use Wikimedia\Timestamp\TimestampFormat;
 
 /**
  * Helper class for retrieving comments from the database.
@@ -98,11 +101,33 @@ class CommentsPager {
 
 	/**
 	 * Set the continue to use in the database query.
-	 * @param string $continue
+	 *
+	 * @param string|null $continue
 	 * @return void
+	 * @throws InvalidArgumentException if the value cannot be used with the current sort method
 	 */
 	public function setContinue( $continue ) {
+		if ( $continue === null || $continue === '' ) {
+			$this->continue = null;
+			return;
+		}
+
+		if ( $this->isDateSort() ) {
+			if ( ConvertibleTimestamp::convert( TimestampFormat::MW, $continue ) === false ) {
+				throw new InvalidArgumentException( 'The continue value is not a timestamp' );
+			}
+		} elseif ( !ctype_digit( (string)$continue ) ) {
+			throw new InvalidArgumentException( 'The continue value is not a row offset' );
+		}
+
 		$this->continue = $continue;
+	}
+
+	/**
+	 * @return bool
+	 */
+	private function isDateSort() {
+		return $this->sortMethod !== null && str_starts_with( $this->sortMethod, 'sort_date' );
 	}
 
 	/**
@@ -216,10 +241,10 @@ class CommentsPager {
 				if ( $offsetCond !== null ) {
 					$conds[] = $offsetCond;
 				}
-				if ( !str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+				if ( !$this->isDateSort() ) {
 					// For queries without dates, we will revert to using actual query offset,
 					// which is probably slightly expensive for a large number of comments.
-					$opts[ 'OFFSET' ] = $this->continue;
+					$opts[ 'OFFSET' ] = (int)$this->continue;
 				}
 			}
 
@@ -274,10 +299,10 @@ class CommentsPager {
 			if ( $offsetCond !== null ) {
 				$conds[] = $offsetCond;
 			}
-			if ( !str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+			if ( !$this->isDateSort() ) {
 				// For queries without dates, we will revert to using actual query offset,
 				// which is probably slightly expensive for a large number of comments.
-				$opts[ 'OFFSET' ] = $this->continue;
+				$opts[ 'OFFSET' ] = (int)$this->continue;
 			}
 		}
 
@@ -311,10 +336,10 @@ class CommentsPager {
 			if ( $row->yap_parent === null ) {
 				if ( $parentsSeen === $this->limit ) {
 					// This is the extra row we queried for to work out if there's more rows that can be requested.
-					if ( str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+					if ( $this->isDateSort() ) {
 						$this->continue = $row->yap_timestamp;
 					} else {
-						$this->continue = $prevContinue + $this->limit;
+						$this->continue = (string)( (int)$prevContinue + $this->limit );
 					}
 					continue;
 				} else {
@@ -352,10 +377,10 @@ class CommentsPager {
 			if ( $offsetCond !== null ) {
 				$conds[] = $offsetCond;
 			}
-			if ( !str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+			if ( !$this->isDateSort() ) {
 				// For queries without dates, we will revert to using actual query offset,
 				// which is probably slightly expensive for a large number of comments.
-				$opts[ 'OFFSET' ] = $this->continue;
+				$opts[ 'OFFSET' ] = (int)$this->continue;
 			}
 		}
 
@@ -384,10 +409,10 @@ class CommentsPager {
 		foreach ( $res as $row ) {
 			if ( count( $comments ) === $this->limit ) {
 				// This is the extra row we queried for to work out if there's more rows that can be requested.
-				if ( str_starts_with( $this->sortMethod, 'sort_date' ) ) {
+				if ( $this->isDateSort() ) {
 					$this->continue = $row->yap_timestamp;
 				} else {
-					$this->continue = $prevContinue + $this->limit;
+					$this->continue = (string)( (int)$prevContinue + $this->limit );
 				}
 				continue;
 			}

@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Yappin\Api;
 
+use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\Yappin\CommentFactory;
@@ -117,7 +118,12 @@ class ApiPostComment extends SimpleHandler {
 
 		$parent = null;
 		if ( $parentId ) {
-			$parent = $this->commentFactory->newFromId( $parentId );
+			try {
+				$parent = $this->commentFactory->newFromId( $parentId );
+			} catch ( InvalidArgumentException $ex ) {
+				throw new LocalizedHttpException(
+					new MessageValue( 'yappin-submit-error-parent-missing', [ $parentId ] ), 400 );
+			}
 
 			if ( $parent->isDeleted() ) {
 				throw new LocalizedHttpException(

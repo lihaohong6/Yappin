@@ -2,15 +2,18 @@
 
 namespace MediaWiki\Extension\Yappin\Api;
 
+use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentsPager;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
+use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserNameUtils;
+use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\NumericDef;
 use Wikimedia\Rdbms\IDatabase;
@@ -124,7 +127,13 @@ class ApiGetAllComments extends SimpleHandler {
 		$continue = $params[ 'continue' ];
 
 		$pager->setLimit( $limit );
-		$pager->setContinue( $continue );
+		try {
+			$pager->setContinue( $continue );
+		} catch ( InvalidArgumentException $ex ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'apierror-badcontinue' ), 400
+			);
+		}
 
 		if ( $pageid !== null ) {
 			$res = $pager->fetchResultsForPage( $pageid, true );

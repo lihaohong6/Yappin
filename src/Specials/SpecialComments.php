@@ -35,7 +35,7 @@ class SpecialComments extends SpecialPage {
 
 		Utils::loadCommentsModule( $out, $this->config );
 		$out->addHTML(
-			'<noscript>' . $out->msg( 'yappin-no-script' )->text() . '</noscript>'
+			'<noscript>' . $out->msg( 'yappin-no-script' )->escaped() . '</noscript>'
 		);
 	}
 

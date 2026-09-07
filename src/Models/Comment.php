@@ -355,7 +355,7 @@ class Comment {
 	public function incrementRatingCount( $amount = 1 ) {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
-			->set( [ 'yap_rating=yap_rating+' . $amount ] )
+			->set( [ 'yap_rating=yap_rating+' . (int)$amount ] )
 			->where( [ 'yap_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
@@ -377,7 +377,7 @@ class Comment {
 	public function decrementRatingCount( $amount = 1 ) {
 		$this->dbw->newUpdateQueryBuilder()
 			->table( $this::TABLE_NAME )
-			->set( [ 'yap_rating=yap_rating-' . $amount ] )
+			->set( [ 'yap_rating=yap_rating-' . (int)$amount ] )
 			->where( [ 'yap_id' => $this->mId ] )
 			->caller( __METHOD__ )->execute();
 
