@@ -6,6 +6,7 @@ use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentity;
 use stdClass;
+use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\LBFactory;
 
 class CommentRating {
@@ -169,44 +170,49 @@ class CommentRating {
 	 */
 	public function save() {
 		$dbw = $this->lbFactory->getPrimaryDatabase();
+		$fname = __METHOD__;
 
-		$prev = $dbw->newSelectQueryBuilder()
-			->select( 'yr_rating' )
-			->table( 'yappin_rating' )
-			->where( [ 'yr_actor' => $this->mActorId, 'yr_comment' => $this->mCommentId ] )
-			->caller( __METHOD__ )->fetchField();
+		// Race condition if 2 votes occur at the same time.
+		$dbw->doAtomicSection( $fname, function ( IDatabase $dbw ) use ( $fname ) {
+			$prev = $dbw->newSelectQueryBuilder()
+				->select( 'yr_rating' )
+				->table( 'yappin_rating' )
+				->where( [ 'yr_actor' => $this->mActorId, 'yr_comment' => $this->mCommentId ] )
+				->forUpdate()
+				->caller( $fname )->fetchField();
 
-		$row = [
-			'yr_comment' => $this->mCommentId,
-			'yr_actor' => $this->mActorId,
-			'yr_rating' => $this->mRating
-		];
+			$row = [
+				'yr_comment' => $this->mCommentId,
+				'yr_actor' => $this->mActorId,
+				'yr_rating' => $this->mRating
+			];
 
-		$dbw->newInsertQueryBuilder()
-			->insertInto( 'yappin_rating' )
-			->row( $row )
-			->onDuplicateKeyUpdate()
-			->uniqueIndexFields( [ 'yr_comment', 'yr_actor' ] )
-			->set( [ 'yr_rating' => $this->mRating ] )
-			->caller( __METHOD__ )
-			->execute();
+			$dbw->newInsertQueryBuilder()
+				->insertInto( 'yappin_rating' )
+				->row( $row )
+				->onDuplicateKeyUpdate()
+				->uniqueIndexFields( [ 'yr_comment', 'yr_actor' ] )
+				->set( [ 'yr_rating' => $this->mRating ] )
+				->caller( $fname )
+				->execute();
 
-		$comment = $this->getComment();
-		if ( !$prev ) {
-			// User had not rated this comment before
-			if ( $this->mRating === -1 ) {
-				$comment->decrementRatingCount();
-			} elseif ( $this->mRating === 1 ) {
-				$comment->incrementRatingCount();
+			$comment = $this->getComment();
+			if ( !$prev ) {
+				// User had not rated this comment before
+				if ( $this->mRating === -1 ) {
+					$comment->decrementRatingCount();
+				} elseif ( $this->mRating === 1 ) {
+					$comment->incrementRatingCount();
+				}
+			} elseif ( (int)$prev !== $this->mRating ) {
+				// Rating is different to what the previous value was for this user
+				$diff = abs( (int)$prev - $this->mRating );
+				if ( (int)$prev > $this->mRating ) {
+					$comment->decrementRatingCount( $diff );
+				} else {
+					$comment->incrementRatingCount( $diff );
+				}
 			}
-		} elseif ( (int)$prev !== $this->mRating ) {
-			// Rating is different to what the previous value was for this user
-			$diff = abs( $prev - $this->mRating );
-			if ( $this->mRating < $prev ) {
-				$comment->decrementRatingCount( $diff );
-			} else {
-				$comment->incrementRatingCount( $diff );
-			}
-		}
+		} );
 	}
 }
