@@ -28,12 +28,28 @@ class Utils {
 			return new MessageValue( 'yappin-submit-error-noperm' );
 		}
 
+		$blocked = self::checkCommentBlock( $userOrAuthority );
+		// If not blocked, user can comment
+		if ( $blocked === false ) {
+			return true;
+		}
+		return $blocked;
+	}
+
+	/**
+	 * Whether a block stops the user from acting on comments at all.
+	 *
+	 * If the user is blocked, this method returns a MessageValue object indicating why.
+	 * @param User|Authority $userOrAuthority
+	 * @return MessageValue|false
+	 */
+	public static function checkCommentBlock( $userOrAuthority ) {
 		$block = $userOrAuthority->getBlock();
 		if ( $block && ( $block->isSitewide() || $block->appliesToRight( 'yappin-comment' ) ) ) {
 			return new MessageValue( 'yappin-submit-error-blocked' );
 		}
 
-		return true;
+		return false;
 	}
 
 	/**

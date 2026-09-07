@@ -18,7 +18,10 @@
 						<div v-else class="comment-author">
 							{{ comment.user.name }}
 						</div>
-						<comment-rating :comment="comment" v-if="!comment.deleted"></comment-rating>
+						<comment-rating
+							v-if="!store.isReadOnly && !comment.deleted"
+							:comment="comment"
+						></comment-rating>
 						<div class="comment-info">
 							<span
 								class="comment-rating"

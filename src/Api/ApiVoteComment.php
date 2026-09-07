@@ -3,7 +3,9 @@
 namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
+use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\CommentFactory;
+use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
@@ -23,12 +25,16 @@ class ApiVoteComment extends SimpleHandler {
 	 */
 	private TempUserCreator $tempUserCreator;
 
+	private Config $config;
+
 	public function __construct(
 		CommentFactory $commentFactory,
-		TempUserCreator $tempUserCreator
+		TempUserCreator $tempUserCreator,
+		Config $config
 	) {
 		$this->commentFactory = $commentFactory;
 		$this->tempUserCreator = $tempUserCreator;
+		$this->config = $config;
 	}
 
 	/**
@@ -36,6 +42,21 @@ class ApiVoteComment extends SimpleHandler {
 	 * @throws HttpException
 	 */
 	public function run() {
+		$auth = $this->getAuthority();
+
+		// Voting needs the same right as commenting, as otherwise blocked users can still abuse the
+		// voting feature.
+		$canComment = Utils::canUserComment( $auth );
+		if ( $canComment !== true ) {
+			throw new LocalizedHttpException( $canComment, 403 );
+		}
+
+		// No one can vote in readonly mode.
+		if ( $this->config->get( 'YappinReadOnly' ) ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
+		}
+
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
 
@@ -64,19 +85,13 @@ class ApiVoteComment extends SimpleHandler {
 		}
 
 		// Voting deliberately does not auto-create a temporary account: it is a one-click action,
-		// and quietly registering an account behind it would surprise the user. Once temporary
-		// accounts are enabled there is then nothing left to attribute an anonymous vote to, since
-		// ActorStore refuses to create IP actors, so anons cannot vote on such a wiki.
-		$user = $this->getAuthority()->getUser();
+		// and quietly registering an account behind it would surprise the user.
+		$user = $auth->getUser();
 		if ( $this->tempUserCreator->isEnabled() && !$user->isRegistered() ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-rating-error-anon' ), 403
 			);
 		}
-
-// if ( $comment->getUser()->getId() === $user->getId() ) {
-//			throw new HttpException( "Cannot vote on user's own comment", 400 );
-//		}
 
 		$rating = $comment->setRatingForUser( $user, $rating );
 

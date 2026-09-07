@@ -150,6 +150,20 @@ class ApiEditComment extends SimpleHandler {
 	 * @throws HttpException
 	 */
 	private function runDeleteComment() {
+		$authority = $this->getAuthority();
+
+		// Unlikely but a blocked moderator should not be able to do anything, including deleting comments.
+		// Similarly one cannot delete one's own comments when blocked.
+		$blocked = Utils::checkCommentBlock( $authority );
+		if ( $blocked !== false ) {
+			throw new LocalizedHttpException( $blocked, 403 );
+		}
+		// No deletion in readonly mode.
+		if ( $this->config->get( 'YappinReadOnly' ) ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
+		}
+
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
 		$commentId = (int)$params[ 'commentid' ];
@@ -163,13 +177,13 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
-		$ownComment = self::isOwnComment( $comment, $this->getAuthority() );
-		$isMod = Utils::canUserModerate( $this->getAuthority() );
+		$ownComment = self::isOwnComment( $comment, $authority );
+		$isMod = Utils::canUserModerate( $authority );
 
 		if ( $ownComment && $delete === true ) {
 			$comment->setDeletedActor( $comment->getActor() );
 		} elseif ( $isMod ) {
-			$comment->setDeletedActor( $delete ? $this->getAuthority()->getUser() : null );
+			$comment->setDeletedActor( $delete ? $authority->getUser() : null );
 		} else {
 			// No permission
 			throw new LocalizedHttpException(
