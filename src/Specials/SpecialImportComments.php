@@ -37,7 +37,7 @@ class SpecialImportComments extends FormSpecialPage {
 	public function execute( $par ) {
 		$user = $this->getUser();
 		if ( !$this->userCanExecute( $user ) ) {
-			throw new PermissionsError( 'yappin-manage' );
+			throw new PermissionsError( $this->getRestriction() );
 		}
 		parent::execute( $par );
 	}
