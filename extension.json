@@ -37,6 +37,10 @@
 		"ResultsPerPage": {
 			"value": 50
 		},
+		"MaxCommentLength": {
+			"value": 20000,
+			"description": "Maximum size, in bytes, of the text a comment may be submitted with. Applies to HTML and wikitext, and to the HTML they parse to. Aimed to prevent extremely long comments. Set to 0 to disable the limit."
+		},
 		"ReadOnly": {
 			"value": false
 		},
@@ -65,6 +69,22 @@
 		"yappin-manage",
 		"yappin-import"
 	],
+	"RateLimits": {
+		"yappin-comment": {
+			"ip": [
+				8,
+				60
+			],
+			"newbie": [
+				8,
+				60
+			],
+			"user": [
+				30,
+				60
+			]
+		}
+	},
 	"GroupPermissions": {
 		"*": {
 			"yappin-comment": true
@@ -130,7 +150,8 @@
 				"Yappin.CommentFactory",
 				"MainConfig",
 				"TempUserCreator",
-				"FormatterFactory"
+				"FormatterFactory",
+				"UserFactory"
 			]
 		},
 		{
@@ -150,7 +171,8 @@
 			"services": [
 				"Yappin.CommentFactory",
 				"ActorStore",
-				"MainConfig"
+				"MainConfig",
+				"UserFactory"
 			]
 		},
 		{
@@ -261,7 +283,8 @@
 				"yappin-view-replies",
 				"yappin-preview-button",
 				"yappin-preview-loading",
-				"yappin-preview-label"
+				"yappin-preview-label",
+				"yappin-preview-too-long"
 			]
 		},
 		"ext.yappin.ve.desktop": {

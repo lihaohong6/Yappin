@@ -49,8 +49,27 @@ const extractApiError = ( result ) => {
 	};
 };
 
+const warnIfTooLong = ( text ) => {
+	const maxLength = mw.config.get( 'wgYappin' ).maxCommentLength;
+	if ( !maxLength ) {
+		return false;
+	}
+
+	const length = new TextEncoder().encode( text.trim() ).length;
+	if ( length <= maxLength ) {
+		return false;
+	}
+
+	mw.notify(
+		mw.message( 'yappin-preview-too-long', maxLength ).text(),
+		{ type: 'warn', tag: 'comment-too-long' }
+	);
+	return true;
+};
+
 module.exports = {
 	SORT_OPTIONS,
 	isElementInView,
-	extractApiError
+	extractApiError,
+	warnIfTooLong
 };

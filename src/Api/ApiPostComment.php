@@ -23,6 +23,7 @@ use MediaWiki\Status\StatusFormatter;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\TempUser\TempUserCreator;
+use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
@@ -54,18 +55,25 @@ class ApiPostComment extends SimpleHandler {
 	 */
 	private StatusFormatter $statusFormatter;
 
+	/**
+	 * @var UserFactory
+	 */
+	private UserFactory $userFactory;
+
 	public function __construct(
 		TitleFactory $titleFactory,
 		CommentFactory $commentFactory,
 		Config $config,
 		TempUserCreator $tempUserCreator,
-		FormatterFactory $formatterFactory
+		FormatterFactory $formatterFactory,
+		UserFactory $userFactory
 	) {
 		$this->titleFactory = $titleFactory;
 		$this->commentFactory = $commentFactory;
 		$this->config = $config;
 		$this->tempUserCreator = $tempUserCreator;
 		$this->statusFormatter = $formatterFactory->getStatusFormatter( RequestContext::getMain() );
+		$this->userFactory = $userFactory;
 	}
 
 	/**
@@ -102,6 +110,11 @@ class ApiPostComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-empty' ), 400 );
 		}
 
+		// HTML will be converted to wikitext and back to HTML.
+		// Wikitext will be parsed to HTML.
+		// Worth an early check for both cases.
+		Utils::checkCommentLength( $this->config, $html ?: $wikitext );
+
 		$parent = null;
 		if ( $parentId ) {
 			$parent = $this->commentFactory->newFromId( $parentId );
@@ -130,6 +143,8 @@ class ApiPostComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400 );
 		}
 
+		Utils::checkCommentRateLimit( $this->userFactory, $auth );
+
 		// Anonymous users get a temporary account, if the wiki is configured to create them
 		$user = Utils::acquireActingUser(
 			$auth,
@@ -153,6 +168,8 @@ class ApiPostComment extends SimpleHandler {
 		} else {
 			$comment->setWikitext( $wikitext );
 		}
+
+		Utils::checkCommentLength( $this->config, $comment->getHtml() );
 
 		$isSpam = $comment->checkSpamFilters();
 		if ( $isSpam ) {

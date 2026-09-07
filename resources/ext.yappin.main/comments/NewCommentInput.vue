@@ -36,7 +36,7 @@ const { defineComponent } = require( 'vue' );
 const { CdxButton } = require( '../codex.js' );
 const store = require( '../store.js' );
 const Comment = require( '../comment.js' );
-const { extractApiError } = require( '../util.js' );
+const { extractApiError, warnIfTooLong } = require( '../util.js' );
 
 const api = new mw.Rest();
 
@@ -143,6 +143,7 @@ module.exports = exports = defineComponent( {
 		},
 		previewComment() {
 			const wikitext = this.$refs.input.value;
+			const tooLong = warnIfTooLong( wikitext );
 			this.$data.isLoadingPreview = true;
 			this.$data.showPreview = true;
 			new mw.Api().get( {
@@ -151,9 +152,13 @@ module.exports = exports = defineComponent( {
 				contentmodel: 'wikitext',
 				title: config.wgPageName,
 				prop: 'text',
+				parsoid: 1,
 				format: 'json'
 			} ).then( ( data ) => {
 				this.$data.previewHtml = data.parse.text[ '*' ];
+				if ( !tooLong ) {
+					warnIfTooLong( this.$data.previewHtml );
+				}
 			} ).always( () => {
 				this.$data.isLoadingPreview = false;
 			} );

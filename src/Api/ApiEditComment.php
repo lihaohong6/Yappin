@@ -15,6 +15,7 @@ use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\User\ActorStore;
+use MediaWiki\User\UserFactory;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
@@ -31,10 +32,21 @@ class ApiEditComment extends SimpleHandler {
 
 	private Config $config;
 
-	public function __construct( CommentFactory $commentFactory, ActorStore $actorStore, Config $config ) {
+	/**
+	 * @var UserFactory
+	 */
+	private UserFactory $userFactory;
+
+	public function __construct(
+		CommentFactory $commentFactory,
+		ActorStore $actorStore,
+		Config $config,
+		UserFactory $userFactory
+	) {
 		$this->commentFactory = $commentFactory;
 		$this->actorStore = $actorStore;
 		$this->config = $config;
+		$this->userFactory = $userFactory;
 	}
 
 	/**
@@ -78,6 +90,8 @@ class ApiEditComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-empty' ), 400 );
 		}
 
+		Utils::checkCommentLength( $this->config, $html ?: $wikitext );
+
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
 		} catch ( InvalidArgumentException $ex ) {
@@ -109,6 +123,8 @@ class ApiEditComment extends SimpleHandler {
 			);
 		}
 
+		Utils::checkCommentRateLimit( $this->userFactory, $auth );
+
 		if ( $html ) {
 			$comment->setHtml( $html );
 			if ( $comment->getWikitext() === '' ) {
@@ -118,6 +134,8 @@ class ApiEditComment extends SimpleHandler {
 		} else {
 			$comment->setWikitext( $wikitext );
 		}
+
+		Utils::checkCommentLength( $this->config, $comment->getHtml() );
 
 		$isSpam = $comment->checkSpamFilters();
 		if ( $isSpam ) {

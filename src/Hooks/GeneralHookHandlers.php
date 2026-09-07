@@ -75,6 +75,7 @@ class GeneralHookHandlers implements
 			'resultsPerPage' => $config->get( 'YappinResultsPerPage' ),
 			'readOnly' => $config->get( 'YappinReadOnly' ),
 			'useVisualEditor' => $config->get( 'YappinUseVisualEditor' ),
+			'maxCommentLength' => $config->get( 'YappinMaxCommentLength' ),
 		];
 	}
 

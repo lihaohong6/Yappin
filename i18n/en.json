@@ -35,6 +35,7 @@
 	"yappin-generic-error-notself": "You cannot modify another user's comment.",
 	"yappin-generic-error-tempuser-throttle": "This action creates a temporary account, but your IP address has created too many in the last $2. Try again shortly.",
 	"yappin-submit-error-empty": "The comment cannot be empty.",
+	"yappin-submit-error-too-long": "The comment is too long. Comments can be at most $1 {{PLURAL:$1|byte|bytes}} long.",
 	"yappin-submit-error-page-missing": "Page with ID $1 does not exist.",
 	"yappin-submit-error-parent-missing": "The parent comment $1 does not exist.",
 	"yappin-submit-error-parent-hasparent": "Cannot reply to a comment which already has a parent.",
@@ -110,5 +111,6 @@
 	"echo-pref-tooltip-yappin": "Comment replies and mentions",
 	"yappin-preview-button": "Preview",
 	"yappin-preview-loading": "Loading preview...",
+	"yappin-preview-too-long": "This comment is too long. It exceeds the limit of $1 {{PLURAL:$1|byte|bytes}} and will be rejected by the server unless you shorten it.",
 	"yappin-preview-label": "Preview"
 }

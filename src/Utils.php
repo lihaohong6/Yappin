@@ -14,6 +14,7 @@ use MediaWiki\Status\StatusFormatter;
 use MediaWiki\Title\Title;
 use MediaWiki\User\TempUser\TempUserCreator;
 use MediaWiki\User\User;
+use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use Wikimedia\Message\MessageValue;
 
@@ -50,6 +51,23 @@ class Utils {
 		}
 
 		return false;
+	}
+
+	public static function checkCommentLength( Config $config, string $text ): void {
+		$maxLength = (int)$config->get( 'YappinMaxCommentLength' );
+		if ( $maxLength > 0 && strlen( $text ) > $maxLength ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-too-long', [ $maxLength ] ), 400
+			);
+		}
+	}
+
+	public static function checkCommentRateLimit( UserFactory $userFactory, Authority $authority ): void {
+		if ( $userFactory->newFromAuthority( $authority )->pingLimiter( 'yappin-comment' ) ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'actionthrottledtext' ), 429
+			);
+		}
 	}
 
 	/**
