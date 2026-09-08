@@ -18,6 +18,7 @@ use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\UserIdentityLookup;
 use MediaWiki\User\UserIdentityValue;
+use MediaWiki\User\UserNameUtils;
 use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IReadableDatabase;
 
@@ -26,6 +27,7 @@ class SpecialImportComments extends FormSpecialPage {
 	private ParsoidParser $parser;
 	private UserIdentityLookup $userLookup;
 	private ActorStore $actorStore;
+	private UserNameUtils $userNameUtils;
 
 	public function __construct() {
 		if ( version_compare( MW_VERSION, '1.46.0', '<' ) ) {
@@ -38,6 +40,7 @@ class SpecialImportComments extends FormSpecialPage {
 		$this->parser = $services->getParsoidParserFactory()->create();
 		$this->userLookup = $services->getUserIdentityLookup();
 		$this->actorStore = $services->getActorStore();
+		$this->userNameUtils = $services->getUserNameUtils();
 	}
 
 	/** @inheritDoc */
@@ -182,9 +185,9 @@ class SpecialImportComments extends FormSpecialPage {
 	 * @param Title $title
 	 * @param array $commentsList
 	 * @param IDatabase $dbw
-	 * @param ActorStore $actorStore
 	 * @param OutputPage $output
 	 * @param bool $skipExisting
+	 * @param bool $attachUsers
 	 *
 	 * @return int[]
 	 */
@@ -240,10 +243,9 @@ class SpecialImportComments extends FormSpecialPage {
 				$parserOutput->clearWrapperDivClass();
 				$html = $parserOutput->runOutputPipeline( $parserOpts )->getRawText();
 
-				$username = $commentData['username'] ?? null;
-				if ( $username === null ) {
-					$username = 'Unknown user';
-				}
+				$rawUsername = $commentData['username'] ?? null;
+				$username = $this->normalizeUserName( $rawUsername );
+
 				$actorUser = null;
 				if ( $attachUsers ) {
 					$actorUser = $this->userLookup->getUserIdentityByName( $username );
@@ -289,6 +291,19 @@ class SpecialImportComments extends FormSpecialPage {
 			$skippedCounter,
 			$failedCounter
 		];
+	}
+
+	private function normalizeUserName( mixed $name ): string {
+		if ( !is_string( $name ) || trim( $name ) === '' ) {
+			return 'Unknown user';
+		}
+
+		if ( $this->userNameUtils->isIP( $name ) ) {
+			return $name;
+		}
+
+		$canonical = $this->userNameUtils->getCanonical( $name );
+		return $canonical === false ? 'Unknown user' : $canonical;
 	}
 
 	/** @inheritDoc */
