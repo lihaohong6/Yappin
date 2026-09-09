@@ -2,14 +2,11 @@
 
 namespace MediaWiki\Extension\Yappin\Api;
 
-use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
-use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
 use MediaWiki\Extension\Yappin\Notifications\YappinPresentationModel;
-use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Language\FormatterFactory;
 use MediaWiki\MediaWikiServices;
@@ -20,7 +17,6 @@ use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
-use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Status\StatusFormatter;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
@@ -31,21 +27,11 @@ use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\Parsoid\Core\LinkTarget as ParsoidLinkTarget;
 
-class ApiPostComment extends SimpleHandler {
+class ApiPostComment extends CommentWriteHandler {
 	/**
 	 * @var TitleFactory
 	 */
 	private TitleFactory $titleFactory;
-
-	/**
-	 * @var CommentFactory
-	 */
-	private CommentFactory $commentFactory;
-
-	/**
-	 * @var Config
-	 */
-	private Config $config;
 
 	/**
 	 * @var TempUserCreator
@@ -57,11 +43,6 @@ class ApiPostComment extends SimpleHandler {
 	 */
 	private StatusFormatter $statusFormatter;
 
-	/**
-	 * @var UserFactory
-	 */
-	private UserFactory $userFactory;
-
 	public function __construct(
 		TitleFactory $titleFactory,
 		CommentFactory $commentFactory,
@@ -70,12 +51,10 @@ class ApiPostComment extends SimpleHandler {
 		FormatterFactory $formatterFactory,
 		UserFactory $userFactory
 	) {
+		parent::__construct( $commentFactory, $config, $userFactory );
 		$this->titleFactory = $titleFactory;
-		$this->commentFactory = $commentFactory;
-		$this->config = $config;
 		$this->tempUserCreator = $tempUserCreator;
 		$this->statusFormatter = $formatterFactory->getStatusFormatter( RequestContext::getMain() );
-		$this->userFactory = $userFactory;
 	}
 
 	/**
@@ -83,16 +62,7 @@ class ApiPostComment extends SimpleHandler {
 	 * @throws HttpException
 	 */
 	public function run() {
-		$auth = $this->getAuthority();
-		$canComment = Utils::canUserComment( $auth );
-		if ( $canComment !== true ) {
-			throw new LocalizedHttpException( $canComment, 403 );
-		}
-
-		if ( $this->config->get( 'YappinReadOnly' ) ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
-		}
+		$this->assertCanComment();
 
 		$body = $this->getValidatedBody();
 		$pageId = (int)$body[ 'pageid' ];
@@ -103,33 +73,12 @@ class ApiPostComment extends SimpleHandler {
 			throw new HttpException( 'Must provide either page ID or parent ID' );
 		}
 
-		// FIXME: can we trust user input here?
-		$html = trim( (string)$body[ 'html' ] );
-		$wikitext = trim( (string)$body[ 'wikitext' ] );
-
-		if ( !$html && !$wikitext ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-empty' ), 400 );
-		}
-
-		// HTML will be converted to wikitext and back to HTML.
-		// Wikitext will be parsed to HTML.
-		// Worth an early check for both cases.
-		Utils::checkCommentLength( $this->config, $html ?: $wikitext );
+		[ $html, $wikitext ] = $this->getSubmittedContent();
 
 		$parent = null;
 		if ( $parentId ) {
-			try {
-				$parent = $this->commentFactory->newFromId( $parentId );
-			} catch ( InvalidArgumentException $ex ) {
-				throw new LocalizedHttpException(
-					new MessageValue( 'yappin-submit-error-parent-missing', [ $parentId ] ), 400 );
-			}
+			$parent = $this->loadNotDeletedComment( $parentId, 'yappin-submit-error-parent-missing' );
 
-			if ( $parent->isDeleted() ) {
-				throw new LocalizedHttpException(
-					new MessageValue( 'yappin-submit-error-parent-missing', [ $parentId ] ), 400 );
-			}
 			if ( $parent->getParent() ) {
 				throw new LocalizedHttpException(
 					new MessageValue( 'yappin-submit-error-parent-hasparent' ), 400 );
@@ -144,17 +93,13 @@ class ApiPostComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-page-missing', [ $pageId ] ), 400 );
 		}
 
-		$commentEnabledOnPage = SpecialCommentControl::getControlStatus( $page ) === CommentControlStatus::ENABLED;
-		if ( !Utils::isCommentsEnabled( $this->config, $page ) || !$commentEnabledOnPage ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400 );
-		}
+		$this->pageAcceptsNewComments( $page );
 
-		Utils::checkCommentRateLimit( $this->userFactory, $auth );
+		$this->checkRateLimit();
 
 		// Anonymous users get a temporary account, if the wiki is configured to create them
 		$user = Utils::acquireActingUser(
-			$auth,
+			$this->getAuthority(),
 			$this->getSession()->getRequest(),
 			$this->tempUserCreator,
 			$this->statusFormatter
@@ -166,24 +111,7 @@ class ApiPostComment extends SimpleHandler {
 			->setActor( $user )
 			->setParent( $parent );
 
-		if ( $html ) {
-			$comment->setHtml( $html );
-			if ( $comment->getWikitext() === '' ) {
-				throw new LocalizedHttpException(
-					new MessageValue( 'yappin-submit-error-empty' ), 400 );
-			}
-		} else {
-			$comment->setWikitext( $wikitext );
-		}
-
-		Utils::checkCommentLength( $this->config, $comment->getHtml() );
-
-		$isSpam = $comment->checkSpamFilters();
-		if ( $isSpam ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-spam' ), 400
-			);
-		}
+		$this->setCommentContent( $comment, $html, $wikitext );
 
 		$comment->save();
 
@@ -198,7 +126,7 @@ class ApiPostComment extends SimpleHandler {
 	 * @inheritDoc
 	 */
 	public function getBodyParamSettings(): array {
-		return [
+		return array_merge( [
 			'pageid' => [
 				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'integer',
@@ -208,18 +136,8 @@ class ApiPostComment extends SimpleHandler {
 				self::PARAM_SOURCE => 'body',
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => false
-			],
-			'html' => [
-				self::PARAM_SOURCE => 'body',
-				ParamValidator::PARAM_TYPE => 'string',
-				ParamValidator::PARAM_REQUIRED => false
-			],
-			'wikitext' => [
-				self::PARAM_SOURCE => 'body',
-				ParamValidator::PARAM_TYPE => 'string',
-				ParamValidator::PARAM_REQUIRED => false
 			]
-		];
+		], self::getContentBodyParamSettings() );
 	}
 
 	/**

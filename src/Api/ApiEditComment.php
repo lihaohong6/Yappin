@@ -2,53 +2,16 @@
 
 namespace MediaWiki\Extension\Yappin\Api;
 
-use InvalidArgumentException;
-use MediaWiki\Config\Config;
-use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
-use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
-use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Permissions\Authority;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
-use MediaWiki\Rest\SimpleHandler;
-use MediaWiki\User\ActorStore;
-use MediaWiki\User\UserFactory;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 
-class ApiEditComment extends SimpleHandler {
-	/**
-	 * @var CommentFactory
-	 */
-	private CommentFactory $commentFactory;
-
-	/**
-	 * @var ActorStore
-	 */
-	private ActorStore $actorStore;
-
-	private Config $config;
-
-	/**
-	 * @var UserFactory
-	 */
-	private UserFactory $userFactory;
-
-	public function __construct(
-		CommentFactory $commentFactory,
-		ActorStore $actorStore,
-		Config $config,
-		UserFactory $userFactory
-	) {
-		$this->commentFactory = $commentFactory;
-		$this->actorStore = $actorStore;
-		$this->config = $config;
-		$this->userFactory = $userFactory;
-	}
-
+class ApiEditComment extends CommentWriteHandler {
 	/**
 	 * @return Response
 	 * @throws HttpException
@@ -66,83 +29,32 @@ class ApiEditComment extends SimpleHandler {
 	 * @throws HttpException
 	 */
 	private function runEditComment() {
-		$auth = $this->getAuthority();
+		$this->assertCanComment();
 
-		$canComment = Utils::canUserComment( $auth );
-		if ( $canComment !== true ) {
-			throw new LocalizedHttpException( $canComment, 403 );
-		}
+		$commentId = (int)$this->getValidatedParams()[ 'commentid' ];
 
-		if ( $this->config->get( 'YappinReadOnly' ) ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
-		}
+		[ $html, $wikitext ] = $this->getSubmittedContent();
 
-		$body = $this->getValidatedBody();
-		$params = $this->getValidatedParams();
-		$commentId = (int)$params[ 'commentid' ];
-
-		$html = trim( (string)$body[ 'html' ] );
-		$wikitext = trim( (string)$body[ 'wikitext' ] );
-
-		if ( !$html && !$wikitext ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-empty' ), 400 );
-		}
-
-		Utils::checkCommentLength( $this->config, $html ?: $wikitext );
-
-		try {
-			$comment = $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
-			);
-		}
-
-		if ( $comment->isDeleted() ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
-			);
-		}
+		$comment = $this->loadNotDeletedComment( $commentId, 'yappin-generic-error-comment-missing' );
 
 		// Editing must respect the same page-level restrictions as posting.
 		$page = $comment->getTitle();
-		if ( !$page
-			|| !Utils::isCommentsEnabled( $this->config, $page )
-			|| SpecialCommentControl::getControlStatus( $page ) !== CommentControlStatus::ENABLED
-		) {
+		if ( !$page ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400
 			);
 		}
+		$this->pageAcceptsNewComments( $page );
 
-		if ( !self::isOwnComment( $comment, $auth ) ) {
+		if ( !self::isOwnComment( $comment, $this->getAuthority() ) ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-notself' ), 400
 			);
 		}
 
-		Utils::checkCommentRateLimit( $this->userFactory, $auth );
+		$this->checkRateLimit();
 
-		if ( $html ) {
-			$comment->setHtml( $html );
-			if ( $comment->getWikitext() === '' ) {
-				throw new LocalizedHttpException(
-					new MessageValue( 'yappin-submit-error-empty' ), 400 );
-			}
-		} else {
-			$comment->setWikitext( $wikitext );
-		}
-
-		Utils::checkCommentLength( $this->config, $comment->getHtml() );
-
-		$isSpam = $comment->checkSpamFilters();
-		if ( $isSpam ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-spam' ), 400
-			);
-		}
+		$this->setCommentContent( $comment, $html, $wikitext );
 
 		$comment->save();
 
@@ -177,23 +89,14 @@ class ApiEditComment extends SimpleHandler {
 			throw new LocalizedHttpException( $blocked, 403 );
 		}
 		// No deletion in readonly mode.
-		if ( $this->config->get( 'YappinReadOnly' ) ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
-		}
+		$this->assertNotReadOnly();
 
 		$body = $this->getValidatedBody();
 		$params = $this->getValidatedParams();
 		$commentId = (int)$params[ 'commentid' ];
 		$delete = (bool)$body[ 'delete' ];
 
-		try {
-			$comment = $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
-			);
-		}
+		$comment = $this->loadComment( $commentId, 'yappin-generic-error-comment-missing' );
 
 		$ownComment = self::isOwnComment( $comment, $authority );
 		$isMod = Utils::canUserModerate( $authority );
@@ -224,18 +127,7 @@ class ApiEditComment extends SimpleHandler {
 	 */
 	public function getBodyParamSettings(): array {
 		if ( $this->getRequest()->getMethod() === 'PUT' ) {
-			return [
-				'html' => [
-					self::PARAM_SOURCE => 'body',
-					ParamValidator::PARAM_TYPE => 'string',
-					ParamValidator::PARAM_REQUIRED => false
-				],
-				'wikitext' => [
-					self::PARAM_SOURCE => 'body',
-					ParamValidator::PARAM_TYPE => 'string',
-					ParamValidator::PARAM_REQUIRED => false
-				]
-			];
+			return self::getContentBodyParamSettings();
 		} else {
 			return [
 				'delete' => [

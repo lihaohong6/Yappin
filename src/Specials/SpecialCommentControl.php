@@ -149,6 +149,14 @@ class SpecialCommentControl extends SpecialPage {
 		$out->addHTML( '</ul>' );
 	}
 
+	/**
+	 * Check the comment control status of a page. Deliberate separate from Utils::isCommentsEnabled because
+	 * there is an intermediate read-only status.
+	 *
+	 * @param Title $title
+	 *
+	 * @return CommentControlStatus
+	 */
 	public static function getControlStatus( Title $title ): CommentControlStatus {
 		$id = $title->getArticleID();
 		if ( !$id ) {
