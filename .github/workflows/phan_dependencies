@@ -1,0 +1,6 @@
+AbuseFilter:
+  branch: auto
+  repo: auto
+UserProfileV2:
+  branch: main
+  repo: https://gitlab.com/telepedia/extensions/userprofilev2
