@@ -7,14 +7,17 @@ use MediaWiki\Message\Message;
 
 abstract class YappinPresentationModel extends EchoEventPresentationModel {
 
+	public const int NOTIFICATION_SNIPPET_LENGTH = 150;
+
 	public function getIconType(): string {
 		return 'chat';
 	}
 
 	public function getPrimaryLink(): array {
 		return [
-			'url' => $this->event->getTitle()->getLocalURL()
-				. '?comment=' . $this->event->getExtraParam( 'comment_id' ),
+			'url' => $this->event->getTitle()->getLocalURL(
+				[ 'comment' => $this->event->getExtraParam( 'comment_id' ) ]
+			),
 			'label' => $this->msg( 'notification-link-text-view-comment' )->text(),
 		];
 	}
@@ -31,8 +34,11 @@ abstract class YappinPresentationModel extends EchoEventPresentationModel {
 	}
 
 	public function getBodyMessage(): bool|Message {
+		$wikitext = (string)$this->event->getExtraParam( 'wikitext', '' );
+
 		$message = $this->msg( 'notification-body-yappin' );
-		$message->params( $this->event->getExtraParam( 'wikitext', '' ) );
+		// Mirrors core where wikitext is not parsed for notifications.
+		$message->plaintextParams( $wikitext );
 		return $message;
 	}
 }

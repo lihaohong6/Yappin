@@ -8,6 +8,7 @@ use MediaWiki\Context\RequestContext;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
+use MediaWiki\Extension\Yappin\Notifications\YappinPresentationModel;
 use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Language\FormatterFactory;
@@ -300,14 +301,18 @@ class ApiPostComment extends SimpleHandler {
 			}
 		}
 
-		$notifications = MediaWikiServices::getInstance()->getNotificationService();
+		$snippet = $services->getContentLanguage()->truncateForVisual(
+			$wikitext, YappinPresentationModel::NOTIFICATION_SNIPPET_LENGTH
+		);
+
+		$notifications = $services->getNotificationService();
 		foreach ( $recipients as $recipientId => $info ) {
 			$info['title'] = $page;
 			$info['agent'] = $notifier;
 			$notifications->notify(
 				new WikiNotification( $info['type'], $page, $notifier, [
 					'comment_id' => $comment->getId(),
-					'wikitext' => $wikitext,
+					'wikitext' => $snippet,
 				] ),
 				new RecipientSet( $userFactory->newFromId( $recipientId ) ),
 			);
