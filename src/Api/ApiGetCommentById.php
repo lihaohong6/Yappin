@@ -76,8 +76,7 @@ class ApiGetCommentById extends SimpleHandler {
 			);
 		}
 
-		if ( !Utils::canUserModerate( $this->getAuthority() )
-			&& $comment->isDeleted() && $comment->getActor() !== $actor ) {
+		if ( !$showDeleted && $comment->isDeleted() && $comment->mActorId !== $actor ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
