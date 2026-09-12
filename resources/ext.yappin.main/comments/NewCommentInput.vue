@@ -29,6 +29,7 @@
 			<strong>{{ $i18n( 'yappin-preview-label' ).text() }}</strong>
 			<div class="comment-preview-content">
 				<span v-if="isLoadingPreview">{{ $i18n( 'yappin-preview-loading' ).text() }}</span>
+				<!-- eslint-disable-next-line vue/no-v-html -->
 				<div v-else v-html="previewHtml"></div>
 			</div>
 		</div>

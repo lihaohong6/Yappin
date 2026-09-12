@@ -83,10 +83,12 @@
 					</div>
 				</div>
 				<edit-comment-input v-if="store.isEditing === comment.id" :comment="comment"></edit-comment-input>
+				<!-- eslint-disable vue/no-v-html -- Sanitised HTML from the parser -->
 				<div
 					v-else
 					class="comment-content"
 					v-html="comment.html"></div>
+				<!-- eslint-enable vue/no-v-html -->
 				<div v-if="comment.children.length > 0" class="comment-children">
 					<comment-item
 						v-for="c in comment.children"
@@ -261,6 +263,7 @@ module.exports = exports = defineComponent( {
 			} );
 		},
 		linkComment() {
+			// eslint-disable-next-line compat/compat -- Supported by every browser MediaWiki targets
 			navigator.clipboard.writeText( this.singleCommentLink.href );
 			mw.notify( mw.msg( 'yappin-action-link-copied' ), { tag: 'copy-comment' } );
 		}
