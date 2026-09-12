@@ -1,0 +1,18 @@
+[
+	{
+		"@note": "Opt out of bundle size budgeting for now.",
+		"resourceModule": "ext.yappin.main",
+		"ignoreDependencies": true,
+		"maxSize": null
+	},
+	{
+		"resourceModule": "ext.yappin.ve",
+		"ignoreDependencies": true,
+		"maxSize": null
+	},
+	{
+		"resourceModule": "ext.yappin.ve.desktop",
+		"ignoreDependencies": true,
+		"maxSize": null
+	}
+]

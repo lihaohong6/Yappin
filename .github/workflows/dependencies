@@ -1,3 +1,6 @@
 Echo:
   branch: auto
   repo: auto
+VisualEditor:
+  branch: auto
+  repo: auto

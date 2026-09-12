@@ -17,11 +17,15 @@ class ApiEditComment extends CommentWriteHandler {
 	 * @throws HttpException
 	 */
 	public function run() {
-		if ( $this->getRequest()->getMethod() === 'PUT' ) {
+		if ( $this->isEditRequest() ) {
 			return $this->runEditComment();
 		} else {
 			return $this->runDeleteComment();
 		}
+	}
+
+	private function isEditRequest(): bool {
+		return $this->getConfig()['method'] === 'PUT';
 	}
 
 	/**
@@ -126,7 +130,7 @@ class ApiEditComment extends CommentWriteHandler {
 	 * @inheritDoc
 	 */
 	public function getBodyParamSettings(): array {
-		if ( $this->getRequest()->getMethod() === 'PUT' ) {
+		if ( $this->isEditRequest() ) {
 			return self::getContentBodyParamSettings();
 		} else {
 			return [

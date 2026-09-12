@@ -166,7 +166,17 @@
 		},
 		{
 			"path": "/comments/v0/comment/{commentid}/edit",
-			"method": [ "PUT", "DELETE" ],
+			"method": "PUT",
+			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiEditComment",
+			"services": [
+				"Yappin.CommentFactory",
+				"MainConfig",
+				"UserFactory"
+			]
+		},
+		{
+			"path": "/comments/v0/comment/{commentid}/edit",
+			"method": "DELETE",
 			"class": "MediaWiki\\Extension\\Yappin\\Api\\ApiEditComment",
 			"services": [
 				"Yappin.CommentFactory",
