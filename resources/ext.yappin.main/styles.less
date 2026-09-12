@@ -1,20 +1,20 @@
 @import 'mediawiki.skin.variables.less';
 
 :root {
-	--comments-primary-background: var(--background-color-base, #ffffff);
-	--comments-secondary-background: var(--background-color-neutral, #f7f7f7);
-	--comments-negative: var(--color-error, #6c1515);
-	--comments-positive: var(--color-success, #156c17);
-	--comments-border: var(--border-color-base, #eae9e9);
-	--comments-highlight-background: var(--background-color-progressive-subtle, #fffce8);
-	--comments-highlight-border: var(--border-color-progressive, #eee6c5);
-	--comments-deleted-background: var(--background-color-error-subtle, #ffe8e8);
-	--comments-deleted-border: var(--border-color-destructive, #eec5c5);
-	--comments-muted: var(--color-subtle, #757575);
-	--comments-button-hover: var(--color-progressive--hover, #05408e);
-	--comments-button-delete-hover: var(--color-destructive--hover, #8e0505);
-	--comments-preview-border: var(--comments-border);
-	--comments-preview-background: var(--comments-highlight-background);
+	--comments-primary-background: var( --background-color-base, #fff );
+	--comments-secondary-background: var( --background-color-neutral, #f7f7f7 );
+	--comments-negative: var( --color-error, #6c1515 );
+	--comments-positive: var( --color-success, #156c17 );
+	--comments-border: var( --border-color-base, #eae9e9 );
+	--comments-highlight-background: var( --background-color-progressive-subtle, #fffce8 );
+	--comments-highlight-border: var( --border-color-progressive, #eee6c5 );
+	--comments-deleted-background: var( --background-color-error-subtle, #ffe8e8 );
+	--comments-deleted-border: var( --border-color-destructive, #eec5c5 );
+	--comments-muted: var( --color-subtle, #757575 );
+	--comments-button-hover: var( --color-progressive--hover, #05408e );
+	--comments-button-delete-hover: var( --color-destructive--hover, #8e0505 );
+	--comments-preview-border: var( --comments-border );
+	--comments-preview-background: var( --comments-highlight-background );
 }
 
 /*
@@ -35,7 +35,6 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 //	}
 //}
 
-
 #ext-comments-container {
 	button {
 		cursor: pointer;
@@ -48,34 +47,35 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 	.comment-input-placeholder {
 		width: 100%;
 		height: 40px;
-		background: var(--comments-primary-background);
-		border: 1px solid var(--comments-border);
-		text-align: left;
 		padding: 0 1em;
-		color: var(--comments-muted);
-		font-weight: 200;
+		border: 1px solid var( --comments-border );
 		margin-bottom: 1em;
+		background: var( --comments-primary-background );
+		color: var( --comments-muted );
+		font-weight: 200;
+		text-align: left;
 	}
 
 	.comment-footer {
 		display: flex;
 		align-items: center;
-		gap: 1em;
 		margin: 0.25em 0;
+		gap: 1em;
 
-		button, a {
-			font-weight: 200;
-			font-size: 0.8em;
-			background: none;
-			border: 0;
-			width: fit-content;
+		button,
+ a {
 			display: flex;
+			width: fit-content;
 			justify-content: center;
-			gap: 0.3em;
 			padding: 0;
+			border: 0;
+			background: none;
+			font-size: 0.8em;
+			font-weight: 200;
+			gap: 0.3em;
 
 			.cdx-icon {
-				color: var(--comments-muted);
+				color: var( --comments-muted );
 			}
 		}
 
@@ -107,8 +107,8 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		display: flex;
 		flex-direction: column;
 		padding: 0.25em 0.5em;
-		border: 1px solid var(--comments-border);
-		box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
+		border: 1px solid var( --comments-border );
+		box-shadow: 0 4px 5px 0 rgba( 0, 0, 0, 0.05 );
 
 		> div:first-child {
 			display: flex;
@@ -117,13 +117,13 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		}
 
 		&.is-highlighted {
-			background: var(--comments-highlight-background);
-			border-color: var(--comments-highlight-border);
+			border-color: var( --comments-highlight-border );
+			background: var( --comments-highlight-background );
 		}
 
-		&[data-deleted="true"] {
-			background: var(--comments-deleted-background);
-			border-color: var(--comments-deleted-border);
+		&[ data-deleted='true' ] {
+			border-color: var( --comments-deleted-border );
+			background: var( --comments-deleted-background );
 		}
 
 		.comment-author-wrapper {
@@ -131,7 +131,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 			align-items: center;
 			gap: 0.5em;
 
-			@media (max-width: 450px) {
+			@media ( max-width: 450px ) {
 				flex-wrap: wrap;
 			}
 		}
@@ -142,8 +142,8 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		}
 
 		.comment-author {
-			line-height: 1em;
 			font-weight: 600;
+			line-height: 1em;
 		}
 
 		.comment-info {
@@ -151,8 +151,8 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		}
 
 		.comment-edited {
+			color: var( --comments-muted );
 			font-weight: 100;
-			color: var(--comments-muted);
 		}
 
 		.comment-avatar {
@@ -166,12 +166,12 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		.comment-content {
 			/* Prevent comments from escaping comment box with position: absolute or fixed */
 			position: relative;
-			contain: layout paint;
 			/* Cap runaway height; scrolling also keeps wide content reachable */
 			max-height: 80vh;
-			overflow-y: auto;
+			contain: layout paint;
 			/* Prevent long comments from overflowing the container */
 			overflow-wrap: anywhere;
+			overflow-y: auto;
 
 			img {
 				max-width: 50% !important;
@@ -182,34 +182,34 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		.comment-children {
 			display: flex;
 			flex-direction: column;
-			gap: 0.5em;
 			margin: 0.25em 0;
+			gap: 0.5em;
 
-			> .ext-comments-comment-item:not([data-deleted]):not(.is-highlighted) {
-				background: var(--comments-secondary-background);
+			> .ext-comments-comment-item:not( [ data-deleted ] ):not( .is-highlighted ) {
+				background: var( --comments-secondary-background );
 			}
 		}
 
 		.comment-action-btn {
-			background: none;
-			border: none;
 			padding: 0.1em;
+			border: none;
+			background: none;
 
 			.cdx-icon {
-				color: var(--comments-muted);
+				color: var( --comments-muted );
 				transition: color 0.25s ease;
 			}
 
 			&.comment-action-edit:hover .cdx-icon {
-				color: var(--comments-button-hover);
+				color: var( --comments-button-hover );
 			}
 
 			&.comment-action-delete:hover .cdx-icon {
-				color: var(--comments-button-delete-hover);
+				color: var( --comments-button-delete-hover );
 			}
 
 			&.comment-action-link:hover .cdx-icon {
-				color: var(--comments-button-hover);
+				color: var( --comments-button-hover );
 			}
 		}
 	}
@@ -220,26 +220,26 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		.comment-preview-content {
 			// In case the preview is empty
 			min-height: 1em;
-			border: 1px solid var(--comments-preview-border);
 			padding: 4px 8px;
-			background-color: var(--comments-preview-background);
+			border: 1px solid var( --comments-preview-border );
+			background-color: var( --comments-preview-background );
 		}
 	}
 
 	.comment-avatar img {
 		width: 40px;
 		height: 40px;
-		border-radius: 50%;
 		border: 1px solid @border-color-base;
+		border-radius: 50%;
 	}
 
 	.comment-rating {
 		&.rating-negative {
-			color: var(--comments-negative);
+			color: var( --comments-negative );
 		}
 
 		&.rating-positive {
-			color: var(--comments-positive);
+			color: var( --comments-positive );
 		}
 	}
 
@@ -248,43 +248,43 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		flex-direction: row;
 
 		button {
-			background: none;
-			border: none;
 			padding: 0.1em;
+			border: none;
+			background: none;
 
 			.cdx-icon {
-				color: var(--comments-muted);
+				color: var( --comments-muted );
 				transition: color 0.1s ease;
 			}
 
-			&.comment-rating-btn[data-type="upvote"][value="true"] .cdx-icon {
-				color: var(--comments-positive);
+			&.comment-rating-btn[ data-type='upvote' ][ value='true' ] .cdx-icon {
+				color: var( --comments-positive );
 			}
 
-			&.comment-rating-btn[data-type="downvote"][value="true"] .cdx-icon {
-				color: var(--comments-negative);
+			&.comment-rating-btn[ data-type='downvote' ][ value='true' ] .cdx-icon {
+				color: var( --comments-negative );
 			}
 		}
 	}
 
 	.comment-info-full {
-		background: var(--comments-secondary-background);
-		text-align: center;
 		padding: 1em;
-		box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.05);
-		text-transform: uppercase;
-		font-weight: 600;
-		color: var(--comments-muted);
+		border: 1px solid var( --comments-border );
+		background: var( --comments-secondary-background );
+		box-shadow: 0 4px 5px 0 rgba( 0, 0, 0, 0.05 );
+		color: var( --comments-muted );
 		font-size: 0.8em;
-		border: 1px solid var(--comments-border);
+		font-weight: 600;
+		text-align: center;
+		text-transform: uppercase;
 	}
 
 	.comment-list-toolbar {
 		display: flex;
-		justify-content: space-between;
-		gap: 1em;
-		margin: 1em 0;
 		align-items: flex-end;
+		justify-content: space-between;
+		margin: 1em 0;
+		gap: 1em;
 	}
 
 	.comment-list-options {
@@ -307,8 +307,8 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 	.comment-input-container {
 		textarea {
 			width: 100%;
+			border: 1px solid var( --comments-border );
 			resize: none;
-			border: 1px solid var(--comments-border);
 		}
 
 		.wikitext-area-wrapper {
@@ -318,10 +318,10 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		}
 
 		.ve-area-wrapper {
-			background: var(--comments-primary-background);
+			background: var( --comments-primary-background );
 
 			.ve-init-target {
-				border: 1px solid var(--comments-border);
+				border: 1px solid var( --comments-border );
 			}
 
 			.ve-ce-surface {
@@ -329,7 +329,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 			}
 
 			.oo-ui-toolbar-bar {
-				background: var(--comments-secondary-background);
+				background: var( --comments-secondary-background );
 
 				.oo-ui-toolbar-tools {
 					white-space: normal;
