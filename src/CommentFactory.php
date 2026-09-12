@@ -15,7 +15,6 @@ use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityUtils;
 use stdClass;
 use Wikimedia\Rdbms\LBFactory;
-use Wikimedia\Timestamp\TimestampFormat;
 
 class CommentFactory {
 	public function __construct(
@@ -78,8 +77,8 @@ class CommentFactory {
 			$comment->mParentId = $parentId;
 		}
 
-		$comment->mCreatedTimestamp = wfTimestamp( TimestampFormat::MW, $row->yap_timestamp ) ?: null;
-		$comment->mEditedTimestamp = wfTimestampOrNull( TimestampFormat::MW, $row->yap_edited_timestamp ) ?: null;
+		$comment->mCreatedTimestamp = wfTimestamp( TS_MW, $row->yap_timestamp ) ?: null;
+		$comment->mEditedTimestamp = wfTimestampOrNull( TS_MW, $row->yap_edited_timestamp ) ?: null;
 
 		$comment->mDeletedActorId = $row->yap_deleted_actor !== null ? (int)$row->yap_deleted_actor : null;
 		$comment->mWikitext = (string)$row->yap_wikitext;

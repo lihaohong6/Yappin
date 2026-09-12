@@ -11,7 +11,6 @@ use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\UserFactory;
 use stdClass;
 use Wikimedia\Rdbms\SelectQueryBuilder;
-use Wikimedia\Timestamp\TimestampFormat;
 
 class ImportCommentStreams extends Maintenance {
 
@@ -291,7 +290,7 @@ class ImportCommentStreams extends Maintenance {
 		}
 
 		$author = $this->userFactory->newFromUserIdentity( $firstRev->getUser() );
-		$createdTs = wfTimestamp( TimestampFormat::ISO_8601, $firstRev->getTimestamp() );
+		$createdTs = wfTimestamp( TS_ISO_8601, $firstRev->getTimestamp() );
 		if ( $createdTs === false ) {
 			$this->output( "  SKIP $entityLabel page_id=$logId: unparsable timestamp\n" );
 			return null;

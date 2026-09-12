@@ -23,7 +23,6 @@ use Wikimedia\Rdbms\IDatabase;
 use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LBFactory;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
-use Wikimedia\Timestamp\TimestampFormat;
 
 class Comment {
 	public const TABLE_NAME = 'yappin_comment';
@@ -506,11 +505,11 @@ class Comment {
 		$isUpdate = $this->mId !== null;
 
 		if ( $this->mCreatedTimestamp === null ) {
-			$this->mCreatedTimestamp = ConvertibleTimestamp::now( TimestampFormat::ISO_8601 );
+			$this->mCreatedTimestamp = ConvertibleTimestamp::now( TS_ISO_8601 );
 		}
 
 		if ( $isUpdate && $setEditedTs ) {
-			$this->mEditedTimestamp = ConvertibleTimestamp::now( TimestampFormat::ISO_8601 );
+			$this->mEditedTimestamp = ConvertibleTimestamp::now( TS_ISO_8601 );
 		}
 
 		$row = [
@@ -562,8 +561,8 @@ class Comment {
 
 		return [
 			'id' => $this->mId,
-			'created' => wfTimestamp( TimestampFormat::ISO_8601, $this->mCreatedTimestamp ),
-			'edited' => wfTimestampOrNull( TimestampFormat::ISO_8601, $this->mEditedTimestamp ),
+			'created' => wfTimestamp( TS_ISO_8601, $this->mCreatedTimestamp ),
+			'edited' => wfTimestampOrNull( TS_ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
 				'name' => $this->getActor()->getName(),
 				'anon' => !$this->getActor()->isRegistered(),
