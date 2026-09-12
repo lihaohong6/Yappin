@@ -19,8 +19,7 @@ class SpecialComments extends SpecialPage {
 	}
 
 	/**
-	 * @param string $subPage
-	 * @return void
+	 * @inheritDoc
 	 */
 	public function execute( $subPage ) {
 		if ( $subPage ) {

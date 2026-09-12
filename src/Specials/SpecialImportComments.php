@@ -48,7 +48,10 @@ class SpecialImportComments extends FormSpecialPage {
 		return 'yappin-import';
 	}
 
-	/** @inheritDoc */
+	/**
+	 * @inheritDoc
+	 * @throws PermissionsError
+	 */
 	public function execute( $par ) {
 		$user = $this->getUser();
 		if ( !$this->userCanExecute( $user ) ) {
@@ -241,7 +244,7 @@ class SpecialImportComments extends FormSpecialPage {
 				$parserOpts->setSuppressSectionEditLinks();
 				$parserOutput = $this->parser->parse( $wikitext, $title, $parserOpts );
 				$parserOutput->clearWrapperDivClass();
-				$html = $parserOutput->runOutputPipeline( $parserOpts )->getRawText();
+				$html = $parserOutput->runOutputPipeline( $parserOpts )->getContentHolderText();
 
 				$rawUsername = $commentData['username'] ?? null;
 				$username = $this->normalizeUserName( $rawUsername );

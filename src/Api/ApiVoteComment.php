@@ -57,7 +57,7 @@ class ApiVoteComment extends SimpleHandler {
 				new MessageValue( 'yappin-submit-error-readonly' ), 403 );
 		}
 
-		$body = $this->getValidatedBody();
+		$body = $this->getValidatedBody() ?? [];
 		$params = $this->getValidatedParams();
 
 		$commentId = (int)$params[ 'commentid' ];
@@ -72,7 +72,7 @@ class ApiVoteComment extends SimpleHandler {
 
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
+		} catch ( InvalidArgumentException ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);

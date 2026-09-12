@@ -2,8 +2,6 @@
 
 namespace MediaWiki\Extension\Yappin\Specials;
 
-namespace MediaWiki\Extension\Yappin\Specials;
-
 use MediaWiki\HTMLForm\HTMLForm;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\SpecialPage\FormSpecialPage;
@@ -38,10 +36,13 @@ class SpecialExportComments extends FormSpecialPage {
 	}
 
 	/**
-	 * Stream all comments to the client as a JSON attachment, then exit.
+	 * Stream all comments to the client as a JSON attachment.
+	 *
+	 * The output has already been disabled by the caller, so nothing else is written
+	 * to the response after this returns.
 	 *
 	 * @param bool $includeDeleted Whether to include soft-deleted comments
-	 * @return never
+	 * @return void
 	 */
 	private function doExport( $includeDeleted ) {
 		$response = $this->getRequest()->response();
@@ -50,7 +51,7 @@ class SpecialExportComments extends FormSpecialPage {
 
 		echo '[';
 
-		$dbr = MediaWikiServices::getInstance()->getDBLoadBalancer()->getConnection( DB_REPLICA );
+		$dbr = MediaWikiServices::getInstance()->getConnectionProvider()->getReplicaDatabase();
 		$conditions = [];
 		if ( !$includeDeleted ) {
 			$conditions[] = 'yap_deleted_actor IS NULL';
@@ -92,6 +93,8 @@ class SpecialExportComments extends FormSpecialPage {
 				];
 
 				// Manually start the JSON object to allow streaming comments array
+				// The response is a JSON attachment, not HTML, so HTML escaping does not apply.
+				// @phan-suppress-next-line SecurityCheck-XSS
 				echo '{"page":' . json_encode( $pageObj ) . ',"comments":[';
 
 				$currentPageId = $row->yap_page;
@@ -120,6 +123,7 @@ class SpecialExportComments extends FormSpecialPage {
 				'username' => $username
 			];
 
+			// @phan-suppress-next-line SecurityCheck-XSS
 			echo json_encode( $commentObj );
 			$isFirstComment = false;
 		}
@@ -130,7 +134,6 @@ class SpecialExportComments extends FormSpecialPage {
 		}
 
 		echo ']';
-		exit;
 	}
 
 	/** @inheritDoc */

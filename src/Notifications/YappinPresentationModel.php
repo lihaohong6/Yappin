@@ -13,6 +13,16 @@ abstract class YappinPresentationModel extends EchoEventPresentationModel {
 		return 'chat';
 	}
 
+	/**
+	 * @inheritDoc
+	 */
+	public function canRender() {
+		return $this->event->getTitle() !== null && $this->event->getAgent() !== null;
+	}
+
+	/**
+	 * @inheritDoc
+	 */
 	public function getPrimaryLink(): array {
 		return [
 			'url' => $this->event->getTitle()->getLocalURL(
@@ -22,6 +32,9 @@ abstract class YappinPresentationModel extends EchoEventPresentationModel {
 		];
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function getSecondaryLinks(): array {
 		return [ $this->getAgentLink() ];
 	}
@@ -33,6 +46,9 @@ abstract class YappinPresentationModel extends EchoEventPresentationModel {
 		return $msg;
 	}
 
+	/**
+	 * @inheritDoc
+	 */
 	public function getBodyMessage(): bool|Message {
 		$wikitext = (string)$this->event->getExtraParam( 'wikitext', '' );
 

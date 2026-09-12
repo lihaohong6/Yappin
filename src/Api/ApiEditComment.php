@@ -91,7 +91,7 @@ class ApiEditComment extends CommentWriteHandler {
 		// No deletion in readonly mode.
 		$this->assertNotReadOnly();
 
-		$body = $this->getValidatedBody();
+		$body = $this->getValidatedBody() ?? [];
 		$params = $this->getValidatedParams();
 		$commentId = (int)$params[ 'commentid' ];
 		$delete = (bool)$body[ 'delete' ];
@@ -101,7 +101,7 @@ class ApiEditComment extends CommentWriteHandler {
 		$ownComment = self::isOwnComment( $comment, $authority );
 		$isMod = Utils::canUserModerate( $authority );
 
-		if ( $ownComment && $delete === true ) {
+		if ( $ownComment && $delete ) {
 			$comment->setDeletedActor( $comment->getActor() );
 		} elseif ( $isMod ) {
 			$comment->setDeletedActor( $delete ? $authority->getUser() : null );

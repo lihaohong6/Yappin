@@ -4,7 +4,6 @@ namespace MediaWiki\Extension\Yappin\Api;
 
 use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentsPager;
-use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
@@ -16,7 +15,7 @@ use MediaWiki\User\UserNameUtils;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\NumericDef;
-use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LBFactory;
 
 class ApiGetAllComments extends SimpleHandler {
@@ -30,10 +29,7 @@ class ApiGetAllComments extends SimpleHandler {
 	 */
 	private ActorStore $actorStore;
 
-	/**
-	 * @var IDatabase
-	 */
-	private $dbr;
+	private IReadableDatabase $dbr;
 
 	/**
 	 * @var UserNameUtils
@@ -53,7 +49,7 @@ class ApiGetAllComments extends SimpleHandler {
 	}
 
 	/**
-	 * @param array $r
+	 * @param array $r A result row from CommentsPager
 	 * @return array
 	 */
 	private function getCommentDataFromResult( array $r ) {
@@ -85,7 +81,7 @@ class ApiGetAllComments extends SimpleHandler {
 
 		$targetActor = null;
 		$targetUserName = $params[ 'user' ] ? ucfirst( trim( $params[ 'user' ] ) ) : null;
-		if ( !empty( $targetUserName ) ) {
+		if ( $targetUserName !== null && $targetUserName !== '' ) {
 			// To avoid useless DB lookups, check whether the name would be valid
 			if ( !$this->userNameUtils->isIP( $targetUserName ) && !$this->userNameUtils->isValid( $targetUserName ) ) {
 				return $this->getResponseFactory()->createJson( [
@@ -117,9 +113,7 @@ class ApiGetAllComments extends SimpleHandler {
 			$targetActor
 		);
 
-		/** @var Comment[] $comments */
 		$comments = [];
-		/** @var Comment[] $comments */
 		$childComments = [];
 
 		$limit = (int)$params[ 'limit' ];
@@ -129,7 +123,7 @@ class ApiGetAllComments extends SimpleHandler {
 		$pager->setLimit( $limit );
 		try {
 			$pager->setContinue( $continue );
-		} catch ( InvalidArgumentException $ex ) {
+		} catch ( InvalidArgumentException ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'apierror-badcontinue' ), 400
 			);

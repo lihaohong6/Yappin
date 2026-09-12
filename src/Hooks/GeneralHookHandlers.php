@@ -7,9 +7,9 @@ use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
 use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
-use MediaWiki\Hook\BeforePageDisplayHook;
 use MediaWiki\Hook\ContributionsToolLinksHook;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Output\Hook\BeforePageDisplayHook;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
 use MediaWiki\Skin\Skin;
@@ -118,7 +118,7 @@ class GeneralHookHandlers implements
 
 		$tools['commentcontribs'] = MediaWikiServices::getInstance()->getLinkRenderer()->makeKnownLink(
 			SpecialPage::getTitleFor( 'Comments' ),
-			$specialPage->msg( 'yappin-contributions', $username ),
+			$specialPage->msg( 'yappin-contributions', $username )->parse(),
 			[],
 			[ 'user' => $username ]
 		);

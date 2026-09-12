@@ -5,7 +5,6 @@ namespace MediaWiki\Extension\Yappin\Api;
 use InvalidArgumentException;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\CommentsPager;
-use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
@@ -14,7 +13,7 @@ use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\User\ActorStore;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
-use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LBFactory;
 
 class ApiGetCommentById extends SimpleHandler {
@@ -28,10 +27,7 @@ class ApiGetCommentById extends SimpleHandler {
 	 */
 	private ActorStore $actorStore;
 
-	/**
-	 * @var IDatabase
-	 */
-	private $dbr;
+	private IReadableDatabase $dbr;
 
 	public function __construct(
 		CommentFactory $commentFactory,
@@ -44,7 +40,7 @@ class ApiGetCommentById extends SimpleHandler {
 	}
 
 	/**
-	 * @param array $r
+	 * @param array $r A result row from CommentsPager
 	 * @return array
 	 */
 	private function getCommentDataFromResult( array $r ) {
@@ -70,7 +66,7 @@ class ApiGetCommentById extends SimpleHandler {
 
 		try {
 			$comment = $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
+		} catch ( InvalidArgumentException ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-comment-missing', [ $commentId ] ), 400
 			);
@@ -96,7 +92,6 @@ class ApiGetCommentById extends SimpleHandler {
 		$pager->setLimit( 1 );
 		$res = $pager->fetchResultsForParent( $targetId );
 
-		/** @var Comment[] $comments */
 		$childComments = [];
 
 		$parent = null;

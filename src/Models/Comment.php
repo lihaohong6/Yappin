@@ -18,59 +18,47 @@ use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityUtils;
 use Telepedia\UserProfileV2\Avatar\UserProfileV2Avatar;
+use Wikimedia\Message\MessageSpecifier;
 use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LBFactory;
+use Wikimedia\Timestamp\ConvertibleTimestamp;
+use Wikimedia\Timestamp\TimestampFormat;
 
 class Comment {
 	public const TABLE_NAME = 'yappin_comment';
 
-	/** @var int|null */
-	public $mId = null;
+	public ?int $mId = null;
 
-	/** @var Title */
-	private $mTitle;
+	private ?Title $mTitle = null;
 
-	/** @var int */
-	public $mPageId;
+	public int $mPageId = 0;
 
-	/** @var UserIdentity */
-	private $mActor;
+	private ?UserIdentity $mActor = null;
 
-	/** @var int */
-	public $mActorId;
+	public int $mActorId = 0;
 
-	/** @var string|null */
-	public $mCreatedTimestamp = null;
+	public ?string $mCreatedTimestamp = null;
 
-	/** @var string|null */
-	public $mEditedTimestamp = null;
+	public ?string $mEditedTimestamp = null;
 
-	/** @var Comment|null */
-	private $mParent = null;
+	private ?Comment $mParent = null;
 
-	/** @var int */
-	public $mParentId;
+	public ?int $mParentId = null;
 
-	/** @var UserIdentity */
-	public $mDeletedActor = null;
+	public ?UserIdentity $mDeletedActor = null;
 
-	/** @var int */
-	public $mDeletedActorId = null;
+	public ?int $mDeletedActorId = null;
 
-	/** @var int */
-	public $mRating = 0;
+	public int $mRating = 0;
 
-	/** @var string */
-	public $mHtml;
+	public string $mHtml = '';
 
-	/** @var string */
-	public $mWikitext;
+	public string $mWikitext = '';
 
-	/** @var IDatabase */
-	private $dbw;
+	private IDatabase $dbw;
 
-	/** @var IDatabase */
-	private $dbr;
+	private IReadableDatabase $dbr;
 
 	/**
 	 * Comment objects should be obtained from CommentFactory, which supplies these services.
@@ -93,18 +81,18 @@ class Comment {
 	}
 
 	/**
-	 * The ID of this comment
+	 * The ID of this comment, or null if it has not been saved yet
 	 *
-	 * @return int
+	 * @return int|null
 	 */
 	public function getId() {
 		return $this->mId;
 	}
 
 	/**
-	 * The wiki page the comment was posted on
+	 * The wiki page the comment was posted on, or null if that page no longer exists
 	 *
-	 * @return Title
+	 * @return Title|null
 	 */
 	public function getTitle() {
 		if ( $this->mTitle !== null ) {
@@ -113,6 +101,22 @@ class Comment {
 
 		$this->mTitle = $this->titleFactory->newFromID( $this->mPageId );
 		return $this->mTitle;
+	}
+
+	/**
+	 * The wiki page the comment was posted on, for callers that cannot proceed without it.
+	 *
+	 * @return Title
+	 */
+	private function getTitleNotNull(): Title {
+		$title = $this->getTitle();
+		if ( !$title ) {
+			throw new InvalidArgumentException(
+				"Comment is attached to page {$this->mPageId}, which does not exist."
+			);
+		}
+
+		return $title;
 	}
 
 	/**
@@ -138,7 +142,13 @@ class Comment {
 			return $this->mActor;
 		}
 
-		$this->mActor = $this->actorStore->getActorById( $this->mActorId, $this->dbr );
+		$actor = $this->actorStore->getActorById( $this->mActorId, $this->dbr );
+		if ( !$actor ) {
+			// Make phan happy. Should not happen.
+			throw new InvalidArgumentException( "No actor exists with the ID {$this->mActorId}." );
+		}
+
+		$this->mActor = $actor;
 
 		return $this->mActor;
 	}
@@ -250,7 +260,7 @@ class Comment {
 			// ...and then throw that HTML away and parse the wikitext back into HTML, so that
 			// the stored HTML always comes from the parser (which sanitises it) rather than
 			// from the client. Otherwise a crafted API request can store arbitrary HTML.
-			if ( ( $this->mWikitext ?? '' ) !== '' ) {
+			if ( $this->mWikitext !== '' ) {
 				$this->reparse( false );
 			} else {
 				// The HTML carried no content; don't leave the unparsed HTML behind.
@@ -287,7 +297,7 @@ class Comment {
 
 	/**
 	 * The timestamp for the comment
-	 * @return string
+	 * @return string|null
 	 */
 	public function getTimestamp() {
 		return $this->mCreatedTimestamp;
@@ -295,7 +305,7 @@ class Comment {
 
 	/**
 	 * The edited timestamp for the comment
-	 * @return string
+	 * @return string|null
 	 */
 	public function getEditedTimestamp() {
 		return $this->mEditedTimestamp;
@@ -319,7 +329,7 @@ class Comment {
 	 * return null.
 	 *
 	 * @param UserIdentity $user
-	 * @return CommentRating
+	 * @return CommentRating|null
 	 */
 	public function getRatingForUser( $user ) {
 		return CommentRating::fetchByCommentAndUser(
@@ -393,11 +403,11 @@ class Comment {
 	 *
 	 * This method returns the current Comment object for easier chaining.
 	 *
-	 * @param number $rating
+	 * @param int $rating
 	 * @return $this
 	 */
 	public function setRating( $rating ) {
-		$this->mRating = $rating;
+		$this->mRating = (int)$rating;
 		return $this;
 	}
 
@@ -412,12 +422,12 @@ class Comment {
 	 */
 	public function reparse( $fromHtml = false ) {
 		if ( $fromHtml ) {
-			if ( ( $this->mHtml ?? '' ) === '' ) {
+			if ( $this->mHtml === '' ) {
 				throw new InvalidArgumentException( 'No HTML provided; the comment could not be parsed.' );
 			}
 
 			$transform = $this->htmlTransformFactory
-				->getHtmlToContentTransform( $this->mHtml, $this->getTitle() );
+				->getHtmlToContentTransform( $this->mHtml, $this->getTitleNotNull() );
 
 			$transform->setOptions( [
 				'contentmodel' => CONTENT_MODEL_WIKITEXT,
@@ -432,7 +442,7 @@ class Comment {
 
 			$this->mWikitext = $content->getText();
 		} else {
-			if ( ( $this->mWikitext ?? '' ) === '' ) {
+			if ( $this->mWikitext === '' ) {
 				throw new InvalidArgumentException( 'No wikitext provided; the comment could not be parsed.' );
 			}
 
@@ -442,7 +452,7 @@ class Comment {
 			// post or edit the comment.
 			$parserOpts = ParserOptions::newFromAnon();
 			$parserOpts->setAllowSpecialInclusion( false );
-			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitle(), $parserOpts );
+			$parserOutput = $parser->parse( $this->mWikitext, $this->getTitleNotNull(), $parserOpts );
 
 			// 'unwrap' drops the .mw-parser-output wrapper.
 			$this->mHtml = $parserOutput->runOutputPipeline( $parserOpts, [ 'unwrap' => true ] )
@@ -452,9 +462,9 @@ class Comment {
 
 	/**
 	 * Check whether this Comment object would violate one of the wiki's anti-abuse measures. If the result from this
-	 * method is null, then the comment passed validation. Else, it will return an array of errors from
-	 * `Status::getErrorsArray()`.
-	 * @return array[]|null
+	 * method is null, then the comment passed validation. Else, it will return the error messages
+	 * from `Status::getMessages()`.
+	 * @return MessageSpecifier[]|null
 	 */
 	public function checkSpamFilters() {
 		// Run the comment through AbuseFilter, if it is installed and enabled
@@ -463,7 +473,7 @@ class Comment {
 			// Go through the getters rather than the raw fields: a comment loaded from a
 			// database row (i.e. the edit path) only has the actor and page IDs populated.
 			$user = $this->userFactory->newFromUserIdentity( $this->getActor() );
-			$title = $this->getTitle();
+			$title = $this->getTitleNotNull();
 
 			$vars = AbuseFilterServices::getVariableGeneratorFactory()
 				->newGenerator()
@@ -480,7 +490,7 @@ class Comment {
 			$status = $runner->run();
 
 			if ( !$status->isOK() ) {
-				return $status->getErrorsArray();
+				return $status->getMessages( 'error' );
 			}
 		}
 
@@ -495,12 +505,12 @@ class Comment {
 	public function save( bool $setEditedTs = true ) {
 		$isUpdate = $this->mId !== null;
 
-		if ( !$this->mCreatedTimestamp ) {
-			$this->mCreatedTimestamp = wfTimestamp( TS_ISO_8601 );
+		if ( $this->mCreatedTimestamp === null ) {
+			$this->mCreatedTimestamp = ConvertibleTimestamp::now( TimestampFormat::ISO_8601 );
 		}
 
 		if ( $isUpdate && $setEditedTs ) {
-			$this->mEditedTimestamp = wfTimestampOrNull( TS_ISO_8601, 0 );
+			$this->mEditedTimestamp = ConvertibleTimestamp::now( TimestampFormat::ISO_8601 );
 		}
 
 		$row = [
@@ -547,13 +557,13 @@ class Comment {
 		if ( $showAvatars && ExtensionRegistry::getInstance()->isLoaded( 'UserProfileV2' ) ) {
 			$userId = $this->getActor()->getId();
 			$avatar = new UserProfileV2Avatar( $userId );
-			$avatarUrl = $avatar->getAvatarUrl( [ "raw" => true ] ) ?? null;
+			$avatarUrl = $avatar->getAvatarUrl( [ "raw" => true ] ) ?: null;
 		}
 
 		return [
 			'id' => $this->mId,
-			'created' => wfTimestamp( TS_ISO_8601, $this->mCreatedTimestamp ),
-			'edited' => wfTimestampOrNull( TS_ISO_8601, $this->mEditedTimestamp ),
+			'created' => wfTimestamp( TimestampFormat::ISO_8601, $this->mCreatedTimestamp ),
+			'edited' => wfTimestampOrNull( TimestampFormat::ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
 				'name' => $this->getActor()->getName(),
 				'anon' => !$this->getActor()->isRegistered(),

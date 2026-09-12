@@ -64,7 +64,7 @@ class ApiPostComment extends CommentWriteHandler {
 	public function run() {
 		$this->assertCanComment();
 
-		$body = $this->getValidatedBody();
+		$body = $this->getValidatedBody() ?? [];
 		$pageId = (int)$body[ 'pageid' ];
 		$parentId = (int)$body[ 'parentid' ];
 
@@ -84,7 +84,13 @@ class ApiPostComment extends CommentWriteHandler {
 					new MessageValue( 'yappin-submit-error-parent-hasparent' ), 400 );
 			}
 
-			$pageId = $parent->getTitle()->getId();
+			$parentTitle = $parent->getTitle();
+			if ( !$parentTitle ) {
+				throw new LocalizedHttpException(
+					new MessageValue( 'yappin-submit-error-parent-missing', [ $parentId ] ), 400 );
+			}
+
+			$pageId = $parentTitle->getId();
 		}
 
 		$page = $this->titleFactory->newFromID( $pageId );

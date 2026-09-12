@@ -57,7 +57,7 @@ abstract class CommentWriteHandler extends SimpleHandler {
 	 * @throws LocalizedHttpException
 	 */
 	protected function getSubmittedContent(): array {
-		$body = $this->getValidatedBody();
+		$body = $this->getValidatedBody() ?? [];
 
 		$html = trim( (string)$body[ 'html' ] );
 		$wikitext = trim( (string)$body[ 'wikitext' ] );
@@ -109,7 +109,7 @@ abstract class CommentWriteHandler extends SimpleHandler {
 	protected function loadComment( int $commentId, string $errorKey ): Comment {
 		try {
 			return $this->commentFactory->newFromId( $commentId );
-		} catch ( InvalidArgumentException $ex ) {
+		} catch ( InvalidArgumentException ) {
 			throw new LocalizedHttpException(
 				new MessageValue( $errorKey, [ $commentId ] ), 400
 			);

@@ -2,6 +2,7 @@
 
 namespace MediaWiki\Extension\Yappin;
 
+use MediaWiki\Block\AbstractBlock;
 use MediaWiki\Config\Config;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
@@ -46,7 +47,8 @@ class Utils {
 	 */
 	public static function checkCommentBlock( $userOrAuthority ) {
 		$block = $userOrAuthority->getBlock();
-		if ( $block && ( $block->isSitewide() || $block->appliesToRight( 'yappin-comment' ) ) ) {
+		$partialBlockOnCommenting = $block instanceof AbstractBlock && $block->appliesToRight( 'yappin-comment' );
+		if ( $block && ( $block->isSitewide() || $partialBlockOnCommenting ) ) {
 			return new MessageValue( 'yappin-submit-error-blocked' );
 		}
 

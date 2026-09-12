@@ -7,7 +7,7 @@ use MediaWiki\Extension\Yappin\Models\Comment;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\User\ActorStore;
 use stdClass;
-use Wikimedia\Rdbms\IDatabase;
+use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\UnionQueryBuilder;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
@@ -27,10 +27,7 @@ class CommentsPager {
 	 */
 	private CommentFactory $commentFactory;
 
-	/**
-	 * @var IDatabase
-	 */
-	private IDatabase $db;
+	private IReadableDatabase $db;
 
 	/**
 	 * @var ActorStore
@@ -215,7 +212,7 @@ class CommentsPager {
 	 * Fetches the comments for a particular page by its ID.
 	 * @param int $pageId
 	 * @param bool $includeChildren
-	 * @return stdClass[]
+	 * @return array[]
 	 */
 	public function fetchResultsForPage( $pageId, $includeChildren ) {
 		$conds = [
@@ -320,7 +317,7 @@ class CommentsPager {
 
 	/**
 	 * @param SelectQueryBuilder|UnionQueryBuilder $builder
-	 * @return stdClass[]
+	 * @return array[]
 	 */
 	private function reallyFetchResultsForPage( $builder ) {
 		$res = $builder->fetchResultSet();
@@ -355,7 +352,7 @@ class CommentsPager {
 
 	/**
 	 * Fetches all of the comments posted on the wiki.
-	 * @return stdClass[]
+	 * @return array[]
 	 */
 	public function fetchAllResults() {
 		$conds = [];
@@ -427,7 +424,7 @@ class CommentsPager {
 	/**
 	 * Fetches the target parent ID's row, and the children of the target parent comment ID.
 	 * @param int $parentId
-	 * @return stdClass[]
+	 * @return array[]
 	 */
 	public function fetchResultsForParent( $parentId ) {
 		$conds = [];
@@ -454,7 +451,7 @@ class CommentsPager {
 		$parentSelect = $this->db->newSelectQueryBuilder()
 			->select( 'c.*' )
 			->from( Comment::TABLE_NAME, 'c' )
-			->where( [ 'yap_id' => $parentId ] + $conds );
+			->where( array_merge( [ 'yap_id' => $parentId ], $conds ) );
 
 		$this->addPageJoin( $parentSelect );
 		$this->addUserRatingJoin( $parentSelect );
@@ -475,7 +472,7 @@ class CommentsPager {
 	/**
 	 * @param Comment $comment
 	 * @param stdClass $row
-	 * @return stdClass[]
+	 * @return array
 	 */
 	private function formatResult( $comment, $row ) {
 		return [
