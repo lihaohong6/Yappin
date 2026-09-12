@@ -1,0 +1,14 @@
+{
+	"extends": [
+		"stylelint-config-idiomatic-order",
+		"stylelint-config-wikimedia/support-modern",
+		"stylelint-config-wikimedia/mediawiki"
+	],
+	"ignoreFiles": [ "vendor/**" ],
+	"reportNeedlessDisables": true,
+	"rules": {
+		"no-descending-specificity": null,
+		"selector-class-pattern": "^(cdx|client|comment|ext|is|mw|oo-ui|rating|skin|ve|wikitext)-",
+		"selector-max-id": null
+	}
+}

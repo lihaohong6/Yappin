@@ -1,11 +1,12 @@
 {
 	"root": true,
 	"extends": [
-		"wikimedia/client-es6",
+		"wikimedia/client",
 		"wikimedia/jquery",
 		"wikimedia/mediawiki"
 	],
+	"ignorePatterns": [ "vendor/**" ],
 	"parserOptions": {
-		"sourceType": "module"
+		"ecmaVersion": 2024
 	}
 }
