@@ -112,10 +112,10 @@ module.exports = exports = defineComponent( {
 				body.pageid = config.wgArticleId;
 			}
 
-			if ( this.$data.ve ) {
+			if ( this.ve ) {
 				// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
 				// which will sanitize it before saving it in the database.
-				body.html = this.$data.ve.target.getSurface().getHtml();
+				body.html = this.ve.target.getSurface().getHtml();
 			} else {
 				// If we're not using VE, just send the raw value of the input as wikitext.
 				body.wikitext = this.$refs.input.value;
@@ -203,7 +203,7 @@ module.exports = exports = defineComponent( {
 						input.setSelectionRange( text.length, text.length );
 					} );
 				}
-			} else if ( val === true && this.$data.ve === null ) {
+			} else if ( val === true && this.ve === null ) {
 				// If a user needs to be explicitly pinged due to the lack of nested replies, fill in the ping
 				// as a link in VE
 				const ping = this.$props.ping;
@@ -218,20 +218,20 @@ module.exports = exports = defineComponent( {
 					$input.val( pingHtml );
 				}
 				// Create the VE instance for this editor
-				this.$data.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
+				this.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
 				// FIXME: the cursor is at the beginning of VE instead of end
-				// this.$data.ve.moveCursorToEnd();
+				// this.ve.moveCursorToEnd();
 			} else if ( val === true ) {
-				if ( this.$data.ve ) {
-					this.$data.ve.target.getSurface().getView().focus();
+				if ( this.ve ) {
+					this.ve.target.getSurface().getView().focus();
 				} else {
 					setTimeout( () => $input.trigger( 'focus' ), 0 );
 				}
 			} else {
-				if ( this.$data.ve ) {
+				if ( this.ve ) {
 					// When we're no longer writing a comment, kill the VE instance
-					this.$data.ve.target.destroy();
-					this.$data.ve = null;
+					this.ve.target.destroy();
+					this.ve = null;
 				} else {
 					$input.val( '' );
 				}
