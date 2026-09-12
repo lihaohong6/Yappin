@@ -15,7 +15,9 @@
 				<span v-if="store.globalCooldown">
 					{{ $i18n( 'yappin-submit-cooldown', store.globalCooldown ).text() }}
 				</span>
-				<span v-else-if="isTopLevel">{{ $i18n( 'yappin-post-submit-top-level' ).text() }}</span>
+				<span v-else-if="isTopLevel">
+					{{ $i18n( 'yappin-post-submit-top-level' ).text() }}
+				</span>
 				<span v-else>{{ $i18n( 'yappin-post-submit-child' ).text() }}</span>
 			</cdx-button>
 			<cdx-button v-if="!useVE" @click="previewComment">
@@ -28,7 +30,9 @@
 		<div v-if="!useVE && showPreview" class="comment-preview">
 			<strong>{{ $i18n( 'yappin-preview-label' ).text() }}</strong>
 			<div class="comment-preview-content">
-				<span v-if="isLoadingPreview">{{ $i18n( 'yappin-preview-loading' ).text() }}</span>
+				<span v-if="isLoadingPreview">
+					{{ $i18n( 'yappin-preview-loading' ).text() }}
+				</span>
 				<!-- eslint-disable-next-line vue/no-v-html -->
 				<div v-else v-html="previewHtml"></div>
 			</div>
@@ -114,8 +118,9 @@ module.exports = exports = defineComponent( {
 			}
 
 			if ( this.ve ) {
-				// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
-				// which will sanitize it before saving it in the database.
+				// We're going to pass the raw HTML from VE to our API. However, the API will
+				// parse it using Parsoid, which will sanitize it before saving it in the
+				// database.
 				body.html = this.ve.target.getSurface().getHtml();
 			} else {
 				// If we're not using VE, just send the raw value of the input as wikitext.
@@ -134,7 +139,9 @@ module.exports = exports = defineComponent( {
 
 				if ( this.$props.parentId ) {
 					// Reply to an existing comment, add it to the end of the children list
-					const ix = this.$data.store.comments.findIndex( ( c ) => c.id === this.$props.parentId );
+					const ix = this.$data.store.comments.findIndex(
+						( c ) => c.id === this.$props.parentId
+					);
 					this.$data.store.comments[ ix ].children.push( newComment );
 				} else {
 					// Top-level comment, just throw it to the top of the comments list
@@ -205,8 +212,8 @@ module.exports = exports = defineComponent( {
 					} );
 				}
 			} else if ( val === true && this.ve === null ) {
-				// If a user needs to be explicitly pinged due to the lack of nested replies, fill in the ping
-				// as a link in VE
+				// If a user needs to be explicitly pinged due to the lack of nested replies,
+				// fill in the ping as a link in VE
 				const ping = this.$props.ping;
 				if ( ping !== '' ) {
 					let pingHtml;

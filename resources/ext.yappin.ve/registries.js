@@ -1,6 +1,6 @@
 /**
- * The code in this file creates new registries for VE so that we can override specific behaviour without impacting
- * the normal VisualEditor.
+ * The code in this file creates new registries for VE so that we can override specific
+ * behaviour without impacting the normal VisualEditor.
  *
  * Adapted from the DiscussionTools extension
  */

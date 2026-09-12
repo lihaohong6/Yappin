@@ -13,7 +13,9 @@
 					action="progressive"
 					weight="primary"
 					@click="submitComment">
-					<span v-if="store.globalCooldown">{{ $i18n( 'yappin-submit-cooldown', store.globalCooldown ).text() }}</span>
+					<span v-if="store.globalCooldown">
+						{{ $i18n( 'yappin-submit-cooldown', store.globalCooldown ).text() }}
+					</span>
 					<span v-else>{{ $i18n( 'yappin-post-edit' ).text() }}</span>
 				</cdx-button>
 				<cdx-button v-if="!useVE" @click="previewComment">
@@ -26,7 +28,9 @@
 			<div v-if="!useVE && showPreview" class="comment-preview">
 				<strong>{{ $i18n( 'yappin-preview-label' ).text() }}</strong>
 				<div class="comment-preview-content">
-					<span v-if="isLoadingPreview">{{ $i18n( 'yappin-preview-loading' ).text() }}</span>
+					<span v-if="isLoadingPreview">
+						{{ $i18n( 'yappin-preview-loading' ).text() }}
+					</span>
 					<!-- eslint-disable-next-line vue/no-v-html -->
 					<div v-else v-html="previewHtml"></div>
 				</div>
@@ -83,8 +87,9 @@ module.exports = exports = defineComponent( {
 			const body = {};
 
 			if ( this.ve ) {
-				// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
-				// which will sanitize it before saving it in the database.
+				// We're going to pass the raw HTML from VE to our API. However, the API will
+				// parse it using Parsoid, which will sanitize it before saving it in the
+				// database.
 				body.html = this.ve.target.getSurface().getHtml();
 			} else {
 				// If we're not using VE, just send the raw value of the input as wikitext.

@@ -50,7 +50,9 @@ const registries = require( './registries.js' );
 	mw.commentsExt.ve.Target.static.actionGroups = [];
 
 	// Allow pasting links
-	mw.commentsExt.ve.Target.static.importRules = ve.copy( mw.commentsExt.ve.Target.static.importRules );
+	mw.commentsExt.ve.Target.static.importRules = ve.copy(
+		mw.commentsExt.ve.Target.static.importRules
+	);
 	mw.commentsExt.ve.Target.static.importRules.external.blacklist = OO.simpleArrayDifference(
 		mw.commentsExt.ve.Target.static.importRules.external.blacklist,
 		[ 'link/mwExternal' ]
@@ -136,10 +138,13 @@ const registries = require( './registries.js' );
 	};
 
 	mw.commentsExt.ve.Target.prototype.getSurfaceConfig = function ( config ) {
-		return mw.commentsExt.ve.Target.super.prototype.getSurfaceConfig.call( this, ve.extendObject( {
-			sequenceRegistry: registries.sequenceRegistry,
-			commandRegistry: registries.commandRegistry
-		}, config ) );
+		return mw.commentsExt.ve.Target.super.prototype.getSurfaceConfig.call(
+			this,
+			ve.extendObject( {
+				sequenceRegistry: registries.sequenceRegistry,
+				commandRegistry: registries.commandRegistry
+			}, config )
+		);
 	};
 
 	ve.init.mw.targetFactory.register( mw.commentsExt.ve.Target );

@@ -1,8 +1,8 @@
 /**
  * Main module for the Yappin extension.
  *
- * This module creates a new Vue app, which handles displaying comments and allowing users to post new comments. It is
- * used on all wiki pages where comments should be displayed.
+ * This module creates a new Vue app, which handles displaying comments and allowing users
+ * to post new comments. It is used on all wiki pages where comments should be displayed.
  *
  * @author Jayden Bailey <jayden@weirdgloop.org>
  */

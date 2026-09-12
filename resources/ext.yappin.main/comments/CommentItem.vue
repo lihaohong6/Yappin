@@ -42,7 +42,8 @@
 							<span
 								v-if="comment.edited !== null"
 								class="comment-edited"
-								:title="comment.edited">  {{ $i18n( 'yappin-edited', editedDate ).text() }}</span>
+								:title="comment.edited"
+							>  {{ $i18n( 'yappin-edited', editedDate ).text() }}</span>
 							<span
 								v-if="targetPage"
 								class="comment-page"
@@ -50,7 +51,8 @@
 								&#183; <span v-i18n-html="targetPageMessage"></span>
 							</span>
 							<span
-								v-if="!store.singleComment && store.isSpecialComments && comment.parent"
+								v-if="!store.singleComment && store.isSpecialComments &&
+									comment.parent"
 								class="comment-parent"
 							>
 								<span v-i18n-html="targetParentMessage"></span>
@@ -67,7 +69,8 @@
 							:title="$i18n( 'yappin-action-label-edit' ).text()"
 						></comment-action>
 						<comment-action
-							v-if="!store.isReadOnly && ( comment.ours && comment.deleted === null ) || store.isMod"
+							v-if="!store.isReadOnly &&
+								( comment.ours && comment.deleted === null ) || store.isMod"
 							class="comment-action-delete"
 							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
 							:on-click="deleteComment"
@@ -82,7 +85,10 @@
 						></comment-action>
 					</div>
 				</div>
-				<edit-comment-input v-if="store.isEditing === comment.id" :comment="comment"></edit-comment-input>
+				<edit-comment-input
+					v-if="store.isEditing === comment.id"
+					:comment="comment"
+				></edit-comment-input>
 				<!-- eslint-disable vue/no-v-html -- Sanitised HTML from the parser -->
 				<div
 					v-else
@@ -188,7 +194,8 @@ module.exports = exports = defineComponent( {
 		 * @return {boolean}
 		 */
 		hasFooterContent() {
-			return ( !this.isWritingReply && !this.comment.deleted ) || this.comment.numChildren > 0;
+			return ( !this.isWritingReply && !this.comment.deleted ) ||
+				this.comment.numChildren > 0;
 		},
 		deleteActionLabel() {
 			return this.comment.deleted ?
@@ -238,7 +245,10 @@ module.exports = exports = defineComponent( {
 			return mw.message( 'yappin-comment-parent-link', url.toString() );
 		},
 		singleCommentLink() {
-			const url = new URL( this.targetPage ? this.targetPage.getUrl() : document.location, config.wgServer );
+			const url = new URL(
+				this.targetPage ? this.targetPage.getUrl() : document.location,
+				config.wgServer
+			);
 			url.searchParams.set( 'comment', this.comment.id );
 			return url;
 		}

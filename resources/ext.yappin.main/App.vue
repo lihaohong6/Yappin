@@ -38,7 +38,8 @@ module.exports = exports = defineComponent( {
 	},
 	mounted() {
 		const self = this;
-		// When the app first loads, determine whether we should be displaying the comments in a read-only form
+		// When the app first loads, determine whether we should be displaying the
+		// comments in a read-only form
 		const readOnly = mw.config.get( 'wgYappin' ).readOnly;
 		const pageReadOnly = mw.config.get( 'wgYappinPageReadOnly' ) || false;
 
@@ -54,7 +55,8 @@ module.exports = exports = defineComponent( {
 		let targetUser = params.get( 'user' );
 		if ( targetUser ) {
 			targetUser = targetUser.trim();
-			this.$data.store.filterByUser = targetUser.charAt( 0 ).toUpperCase() + targetUser.slice( 1 );
+			this.$data.store.filterByUser =
+				targetUser.charAt( 0 ).toUpperCase() + targetUser.slice( 1 );
 		}
 
 		this.$data.store.isReadOnly = readOnly || pageReadOnly;
