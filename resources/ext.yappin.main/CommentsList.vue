@@ -108,7 +108,7 @@ module.exports = exports = defineComponent( {
 
 			if ( this.$data.store.singleComment ) {
 				// Attempt to get the requested comment so that we can display it
-				api.get(`/comments/v0/comment/${ this.$data.store.singleComment }?sort=${ this.$data.store.sortMethod }` )
+				api.get( `/comments/v0/comment/${ this.$data.store.singleComment }?sort=${ this.$data.store.sortMethod }` )
 					.done( ( res ) => {
 						const comment = new Comment( res.comment );
 						if ( ( comment.page && comment.page.id === config.wgArticleId ) || this.$data.store.isSpecialComments ) {
@@ -123,7 +123,7 @@ module.exports = exports = defineComponent( {
 					} )
 					.always( () => {
 						this.$data.initialLoadCompleted = true;
-					} )
+					} );
 			} else {
 				// Get a list of all comments for the current page
 				const qsp = new URLSearchParams( {
@@ -139,7 +139,7 @@ module.exports = exports = defineComponent( {
 
 				let path;
 				if ( this.$data.store.isSpecialComments ) {
-					path = `/comments/v0/all?${ qsp.toString() }`
+					path = `/comments/v0/all?${ qsp.toString() }`;
 				} else {
 					path = `/comments/v0/page/${ config.wgArticleId }?${ qsp.toString() }`;
 				}
@@ -148,8 +148,8 @@ module.exports = exports = defineComponent( {
 					.done( ( res ) => {
 						const comments = [];
 						if ( !res.comments ) {
-							mw.notify(res, {
-								type: "error",
+							mw.notify( res, {
+								type: 'error',
 								autoHide: true,
 								autoHideSeconds: 10
 							} );
@@ -172,7 +172,7 @@ module.exports = exports = defineComponent( {
 							this.$data.initialLoadCompleted = true;
 						}
 						this.$data.loading = false;
-					} )
+					} );
 			}
 		},
 		checkVisible() {
@@ -192,7 +192,7 @@ module.exports = exports = defineComponent( {
 				this.resetComments();
 			}
 		},
-		'store.ready': function( val ) {
+		'store.ready': function ( val ) {
 			if ( val === true ) {
 				this.checkVisible();
 			}

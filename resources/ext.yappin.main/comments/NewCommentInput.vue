@@ -1,13 +1,17 @@
 <template>
 	<div v-show="isWritingComment" class="comment-input-container">
-		<div class="ve-area-wrapper" :class="{'wikitext-area-wrapper': !useVE}">
+		<div class="ve-area-wrapper" :class="{ 'wikitext-area-wrapper': !useVE }">
 			<textarea
 				ref="input"
 				rows="5"
 			></textarea>
 		</div>
 		<div class="comment-input-actions">
-			<cdx-button :disabled="store.globalCooldown" action="progressive" weight="primary" @click="submitComment">
+			<cdx-button
+				:disabled="store.globalCooldown"
+				action="progressive"
+				weight="primary"
+				@click="submitComment">
 				<span v-if="store.globalCooldown">
 					{{ $i18n( 'yappin-submit-cooldown', store.globalCooldown ).text() }}
 				</span>
@@ -58,7 +62,7 @@ module.exports = exports = defineComponent( {
 		},
 		ping: {
 			type: String,
-			default: "",
+			default: '',
 			required: false
 		},
 		pingAnon: {
@@ -75,6 +79,15 @@ module.exports = exports = defineComponent( {
 			default: null,
 			required: false
 		}
+	},
+	data() {
+		return {
+			store,
+			ve: null,
+			showPreview: false,
+			previewHtml: '',
+			isLoadingPreview: false
+		};
 	},
 	computed: {
 		isTopLevel() {
@@ -94,18 +107,18 @@ module.exports = exports = defineComponent( {
 
 			// If we're replying to another comment, we don't need to provide a page ID
 			if ( this.$props.parentId ) {
-				body[ 'parentid' ] = this.$props.parentId;
+				body.parentid = this.$props.parentId;
 			} else {
-				body[ 'pageid' ] = config.wgArticleId;
+				body.pageid = config.wgArticleId;
 			}
 
 			if ( this.$data.ve ) {
 				// We're going to pass the raw HTML from VE to our API. However, the API will parse it using Parsoid
 				// which will sanitize it before saving it in the database.
-				body[ 'html' ] = this.$data.ve.target.getSurface().getHtml();
+				body.html = this.$data.ve.target.getSurface().getHtml();
 			} else {
 				// If we're not using VE, just send the raw value of the input as wikitext.
-				body[ 'wikitext' ] = this.$refs.input.value;
+				body.wikitext = this.$refs.input.value;
 			}
 
 			// Use .ajax here rather than .post to circumvent bug: https://bugs.jquery.com/ticket/12326/
@@ -116,7 +129,7 @@ module.exports = exports = defineComponent( {
 				contentType: 'application/json'
 			} ).then( ( data ) => {
 				data.comment.ours = true;
-				let newComment = new Comment( data.comment );
+				const newComment = new Comment( data.comment );
 
 				if ( this.$props.parentId ) {
 					// Reply to an existing comment, add it to the end of the children list
@@ -164,26 +177,17 @@ module.exports = exports = defineComponent( {
 			} );
 		}
 	},
-	data() {
-		return {
-			store,
-			ve: null,
-			showPreview: false,
-			previewHtml: '',
-			isLoadingPreview: false
-		};
-	},
 	watch: {
 		isWritingComment( val ) {
 			const $input = $( this.$refs.input );
 			if ( !this.useVE ) {
 				const ping = this.$props.ping;
 				let text = '';
-				if ( ping !== "" ) {
-					if (ping.startsWith("imported>")) {
-						text = `@${ping}: `;
+				if ( ping !== '' ) {
+					if ( ping.startsWith( 'imported>' ) ) {
+						text = `@${ ping }: `;
 					} else {
-						text = `@[[User:${ping}|${ping}]]: `;
+						text = `@[[User:${ ping }|${ ping }]]: `;
 					}
 				}
 				$input.val( text );
@@ -203,13 +207,13 @@ module.exports = exports = defineComponent( {
 				// If a user needs to be explicitly pinged due to the lack of nested replies, fill in the ping
 				// as a link in VE
 				const ping = this.$props.ping;
-				if ( ping !== "" ) {
+				if ( ping !== '' ) {
 					let pingHtml;
 					if ( this.$props.pingAnon ) {
-						pingHtml = `<p>@${ping}:&nbsp;</p>`;
+						pingHtml = `<p>@${ ping }:&nbsp;</p>`;
 					} else {
 						const title = new mw.Title( ping, 2 );
-						pingHtml = `<p>@<a href="${title.getUrl()}" title="${title.getPrefixedText()}" rel="mw:WikiLink">${ping}</a>:&nbsp;</p>`;
+						pingHtml = `<p>@<a href="${ title.getUrl() }" title="${ title.getPrefixedText() }" rel="mw:WikiLink">${ ping }</a>:&nbsp;</p>`;
 					}
 					$input.val( pingHtml );
 				}
@@ -221,7 +225,7 @@ module.exports = exports = defineComponent( {
 				if ( this.$data.ve ) {
 					this.$data.ve.target.getSurface().getView().focus();
 				} else {
-					setTimeout( () => $input.focus(), 0 );
+					setTimeout( () => $input.trigger( 'focus' ), 0 );
 				}
 			} else {
 				if ( this.$data.ve ) {
