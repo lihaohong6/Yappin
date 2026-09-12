@@ -22,6 +22,7 @@ module.exports = exports = defineComponent( {
 	},
 	props: {
 		icon: {
+			type: [ String, Object ],
 			default: null,
 			required: true
 		},

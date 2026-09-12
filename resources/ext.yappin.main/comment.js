@@ -18,7 +18,7 @@ class Comment {
 		this.page = data.page || null;
 		this.parent = data.parent || null;
 
-		/** @type Comment[] */
+		/** @type {Comment[]} */
 		this.children = [];
 
 		// Only returned if we are on Special:Comments
