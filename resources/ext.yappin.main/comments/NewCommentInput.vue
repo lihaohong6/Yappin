@@ -141,7 +141,7 @@ module.exports = exports = defineComponent( {
 				}
 
 				this.$props.onCancel();
-			} ).fail( ( _, result ) => {
+			} ).catch( ( _, result ) => {
 				const { key, text } = extractApiError( result );
 				if ( key === 'yappin-submit-error-spam' ) {
 					// If the comment was rejected for spam/abuse, add a small cooldown

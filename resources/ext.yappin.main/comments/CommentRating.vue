@@ -85,7 +85,7 @@ module.exports = exports = defineComponent( {
 				this.$props.comment.rating = data.comment.rating;
 			} ).always( () => {
 				this.$data.waiting = false;
-			} ).fail( ( _, result ) => {
+			} ).catch( ( _, result ) => {
 				// Reset the UI state back to the previous value if the API call failed
 				this.$props.comment.userRating = oldValue;
 

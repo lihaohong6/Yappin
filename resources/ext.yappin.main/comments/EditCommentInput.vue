@@ -103,7 +103,7 @@ module.exports = exports = defineComponent( {
 				this.$props.comment.wikitext = newComment.wikitext;
 				this.$props.comment.edited = newComment.edited;
 				this.$data.store.isEditing = null;
-			} ).fail( ( _, result ) => {
+			} ).catch( ( _, result ) => {
 				const { key, text } = extractApiError( result );
 				if ( key === 'yappin-submit-error-spam' ) {
 					// If the comment was rejected for spam/abuse, add a small cooldown

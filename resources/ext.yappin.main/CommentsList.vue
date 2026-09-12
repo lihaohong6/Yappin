@@ -109,14 +109,14 @@ module.exports = exports = defineComponent( {
 			if ( this.$data.store.singleComment ) {
 				// Attempt to get the requested comment so that we can display it
 				api.get( `/comments/v0/comment/${ this.$data.store.singleComment }?sort=${ this.$data.store.sortMethod }` )
-					.done( ( res ) => {
+					.then( ( res ) => {
 						const comment = new Comment( res.comment );
 						if ( ( comment.page && comment.page.id === config.wgArticleId ) || this.$data.store.isSpecialComments ) {
 							this.$data.store.comments = [ comment ];
 							this.$data.store.isMod = res.isMod;
 						}
 					} )
-					.fail( ( _, data ) => {
+					.catch( ( _, data ) => {
 						this.$data.error = extractApiError( data );
 						// XHR reports 0 when the request never reached the server
 						this.$data.error.code = ( data && data.xhr && data.xhr.status ) || 0;
@@ -145,7 +145,7 @@ module.exports = exports = defineComponent( {
 				}
 
 				api.get( path )
-					.done( ( res ) => {
+					.then( ( res ) => {
 						const comments = [];
 						if ( !res.comments ) {
 							mw.notify( res, {
@@ -162,7 +162,7 @@ module.exports = exports = defineComponent( {
 						this.$data.store.isMod = res.isMod;
 						this.$data.moreContinue = res.query.continue;
 					} )
-					.fail( ( _, data ) => {
+					.catch( ( _, data ) => {
 						this.$data.error = extractApiError( data );
 						// XHR reports 0 when the request never reached the server
 						this.$data.error.code = ( data && data.xhr && data.xhr.status ) || 0;
