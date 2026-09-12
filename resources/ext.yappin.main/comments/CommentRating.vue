@@ -31,8 +31,7 @@
 
 <script>
 const Comment = require( '../comment.js' );
-const store = require( '../store.js' );
-const { defineComponent, ref } = require( 'vue' );
+const { defineComponent } = require( 'vue' );
 const { CdxIcon } = require( '../codex.js' );
 const { cdxIconUpTriangle, cdxIconDownTriangle } = require( '../icons.json' );
 const { extractApiError } = require( '../util.js' );
@@ -59,7 +58,6 @@ module.exports = exports = defineComponent( {
 	},
 	data() {
 		return {
-			store,
 			waiting: false
 		};
 	},
