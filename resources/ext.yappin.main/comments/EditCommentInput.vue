@@ -110,7 +110,7 @@ module.exports = exports = defineComponent( {
 					this.$data.store.globalCooldown = 10;
 				}
 				if ( text === null ) {
-					console.log( result );
+					mw.log.error( result );
 				}
 				mw.notify( text || mw.message( 'unknown-error' ).text(),
 					{ type: 'error', tag: 'post-comment-error' } );
