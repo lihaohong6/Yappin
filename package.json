@@ -14,7 +14,7 @@
 	"devDependencies": {
 		"@wikimedia/codex": "^1.8.0",
 		"@wikimedia/types-wikimedia": "0.4.4",
-		"eslint-config-wikimedia": "0.32.5",
+		"eslint-config-wikimedia": "0.32.6",
 		"eslint-plugin-no-jquery": "6.0.0",
 		"grunt-banana-checker": "0.13.0",
 		"oojs": "^7.0.1",
