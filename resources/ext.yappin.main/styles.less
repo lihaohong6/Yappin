@@ -63,7 +63,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 		gap: 1em;
 
 		button,
- a {
+		a {
 			display: flex;
 			width: fit-content;
 			justify-content: center;
@@ -86,10 +86,6 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 				text-decoration: unset;
 			}
 		}
-	}
-
-	.comment-input-container {
-		flex: 1 100%;
 	}
 
 	// Top level input
@@ -174,6 +170,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 			overflow-y: auto;
 
 			img {
+				/* stylelint-disable-next-line declaration-no-important -- Overrides inline width set by the parser */
 				max-width: 50% !important;
 				height: auto;
 			}
@@ -192,7 +189,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 
 		.comment-action-btn {
 			padding: 0.1em;
-			border: none;
+			border: 0;
 			background: none;
 
 			.cdx-icon {
@@ -249,7 +246,7 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 
 		button {
 			padding: 0.1em;
-			border: none;
+			border: 0;
 			background: none;
 
 			.cdx-icon {
@@ -305,6 +302,8 @@ some comments are dropped from the database. In particular, mediawiki.skinning.i
 	}
 
 	.comment-input-container {
+		flex: 1 100%;
+
 		textarea {
 			width: 100%;
 			border: 1px solid var( --comments-border );
