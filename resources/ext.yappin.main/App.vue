@@ -17,7 +17,7 @@
 </template>
 
 <script>
-const { defineComponent } = require( 'vue' );
+const { defineComponent, nextTick } = require( 'vue' );
 const store = require( './store.js' );
 const NewCommentInput = require( './comments/NewCommentInput.vue' );
 const CommentsList = require( './CommentsList.vue' );
@@ -65,7 +65,7 @@ module.exports = exports = defineComponent( {
 			}
 		}, 1000 );
 
-		Vue.nextTick( () => {
+		nextTick( () => {
 			this.$data.store.ready = true;
 		} );
 	}
