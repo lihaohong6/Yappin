@@ -7,8 +7,8 @@ const registries = require( './registries.js' );
 	/**
 	 * Inherits from the standard VE target.
 	 *
-	 * @param node
-	 * @param html
+	 * @param {jQuery} node Node the editor replaces
+	 * @param {string} html Initial HTML content
 	 * @class
 	 * @extends ve.init.mw.Target
 	 */
@@ -94,7 +94,8 @@ const registries = require( './registries.js' );
 	};
 
 	mw.commentsExt.ve.Target.prototype.escapePipesInTables = function ( text ) {
-		let lines = text.split( '\n' ), i, curLine, withinTable = false;
+		const lines = text.split( '\n' );
+		let i, curLine, withinTable = false;
 
 		// This algorithm will hopefully work for all cases except
 		// when there are template calls within the table, and those
@@ -128,7 +129,7 @@ const registries = require( './registries.js' );
 
 	mw.commentsExt.ve.Target.prototype.setDir = function () {
 		const view = this.surface.getView(),
-			dir = $( 'body' ).is( '.rtl' ) ? 'rtl' : 'ltr';
+			dir = document.body.classList.contains( 'rtl' ) ? 'rtl' : 'ltr';
 		if ( view ) {
 			view.getDocument().setDir( dir );
 		}
@@ -143,4 +144,4 @@ const registries = require( './registries.js' );
 
 	ve.init.mw.targetFactory.register( mw.commentsExt.ve.Target );
 
-}( mediaWiki, OO, ve ) );
+}( mw, OO, ve ) );

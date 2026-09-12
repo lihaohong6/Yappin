@@ -15,12 +15,17 @@ const
  * @return {void}
  */
 function initApp() {
-	$( '#bodyContent' ).append(
-		$( '<div>' ).attr( 'id', 'ext-comments-container' )
-	);
+	const bodyContent = document.getElementById( 'bodyContent' );
+	if ( !bodyContent ) {
+		return;
+	}
+
+	const container = document.createElement( 'div' );
+	container.id = 'ext-comments-container';
+	bodyContent.appendChild( container );
 
 	Vue.createMwApp( App )
-		.mount( '#ext-comments-container' );
+		.mount( container );
 }
 
 mw.commentsExt = mw.commentsExt || {};

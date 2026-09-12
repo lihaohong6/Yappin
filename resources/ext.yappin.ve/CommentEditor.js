@@ -8,8 +8,6 @@
 	 * @param {string} [content='']
 	 */
 	mw.commentsExt.ve.Editor = function ( $node, content ) {
-		let modules;
-
 		OO.EventEmitter.call( this );
 		this.$node = $( $node );
 
@@ -21,7 +19,7 @@
 			.addClass( 'oo-ui-texture-pending' );
 
 		// The main module should already be loaded.
-		modules = mw.config.get( 'wgVisualEditorConfig' ).pluginModules.filter( mw.loader.getState );
+		const modules = mw.config.get( 'wgVisualEditorConfig' ).pluginModules.filter( mw.loader.getState );
 
 		// load dependencies & init editor
 		mw.loader.using( modules, this.init.bind( this, content || '' ) );
@@ -32,7 +30,8 @@
 	mw.commentsExt.ve.Editor.prototype.initCallbacks = [];
 
 	mw.commentsExt.ve.Editor.prototype.createTarget = function () {
-		let self = this, $wrapperNode, maxHeight;
+		const self = this;
+		let $wrapperNode, maxHeight;
 
 		this.target = new mw.commentsExt.ve.Target( this.$node, $( this.$node ).val() );
 
@@ -64,14 +63,12 @@
 
 	/**
 	 * Callback function, executed after all VE dependencies have been loaded.
-	 *
-	 * @param {string} [content='']
 	 */
-	mw.commentsExt.ve.Editor.prototype.init = function ( content ) {
+	mw.commentsExt.ve.Editor.prototype.init = function () {
 		this.target = this.createTarget();
 
-		$.each( this.initCallbacks, ( k, callback ) => {
-			callback.apply( this );
+		this.initCallbacks.forEach( ( callback ) => {
+			callback.call( this );
 		} );
 	};
 
@@ -90,7 +87,6 @@
 	 * @return {string}
 	 */
 	mw.commentsExt.ve.Editor.prototype.getRawContent = function () {
-		let doc, html;
 
 		// If we haven't fully loaded yet, just return nothing.
 		if ( !this.target ) {
@@ -98,10 +94,10 @@
 		}
 
 		// get document from ve
-		doc = ve.dm.converter.getDomFromModel( this.dmDoc );
+		const doc = ve.dm.converter.getDomFromModel( this.dmDoc );
 
 		// document content will include html, head & body nodes; get only content inside body node
-		html = ve.properInnerHtml( $( doc.documentElement ).find( 'body' )[ 0 ] );
+		const html = ve.properInnerHtml( $( doc.documentElement ).find( 'body' )[ 0 ] );
 		return html;
 	};
 
@@ -131,7 +127,6 @@
 	};
 
 	mw.commentsExt.ve.Editor.prototype.moveCursorToEnd = function () {
-		let data, cursorPos;
 
 		if ( !this.target ) {
 			this.initCallbacks.push( function () {
@@ -140,8 +135,8 @@
 			return;
 		}
 
-		data = this.target.surface.getModel().getDocument().data;
-		cursorPos = data.getNearestContentOffset( data.getLength(), -1 );
+		const data = this.target.surface.getModel().getDocument().data;
+		const cursorPos = data.getNearestContentOffset( data.getLength(), -1 );
 
 		this.target.surface.getModel().setSelection( new ve.Range( cursorPos ) );
 	};
@@ -175,4 +170,4 @@
 		);
 	};
 
-}( jQuery, mediaWiki, OO, ve ) );
+}( jQuery, mw, OO, ve ) );
