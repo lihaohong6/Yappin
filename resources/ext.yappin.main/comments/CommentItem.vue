@@ -71,9 +71,7 @@
 							class="comment-action-delete"
 							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
 							:on-click="deleteComment"
-							:title="$i18n(
-								comment.deleted ? 'yappin-action-label-undelete' : 'yappin-action-label-delete'
-							).text()"
+							:title="deleteActionLabel"
 						></comment-action>
 						<comment-action
 							v-if="!comment.deleted"
@@ -189,6 +187,11 @@ module.exports = exports = defineComponent( {
 		 */
 		hasFooterContent() {
 			return ( !this.isWritingReply && !this.comment.deleted ) || this.comment.numChildren > 0;
+		},
+		deleteActionLabel() {
+			return this.comment.deleted ?
+				mw.msg( 'yappin-action-label-undelete' ) :
+				mw.msg( 'yappin-action-label-delete' );
 		},
 		rating() {
 			return mw.message( 'yappin-rating',
