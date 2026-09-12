@@ -27,7 +27,7 @@ const store = require( './store.js' );
 const { SORT_OPTIONS } = require( './util.js' );
 
 module.exports = exports = defineComponent( {
-	name: 'Toolbar',
+	name: 'CommentsToolbar',
 	components: {
 		CdxSelect,
 		CdxField
