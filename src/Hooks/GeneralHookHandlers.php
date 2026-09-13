@@ -12,6 +12,7 @@ use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\Hook\BeforePageDisplayHook;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
+use MediaWiki\Skin\Hook\SidebarBeforeOutputHook;
 use MediaWiki\Skin\Skin;
 use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
@@ -20,6 +21,7 @@ class GeneralHookHandlers implements
 	GetAllBlockActionsHook,
 	BeforePageDisplayHook,
 	ResourceLoaderGetConfigVarsHook,
+	SidebarBeforeOutputHook,
 	ContributionsToolLinksHook
 {
 	private Config $config;
@@ -80,7 +82,7 @@ class GeneralHookHandlers implements
 	}
 
 	/** @inheritDoc */
-	public function onSidebarBeforeOutput( Skin $skin, &$sidebar ) {
+	public function onSidebarBeforeOutput( $skin, &$sidebar ): void {
 		$user = $skin->getUser();
 		if ( !$user ) {
 			return;
