@@ -217,11 +217,16 @@ module.exports = exports = defineComponent( {
 				const ping = this.$props.ping;
 				if ( ping !== '' ) {
 					let pingHtml;
-					if ( this.$props.pingAnon ) {
-						pingHtml = `<p>@${ ping }:&nbsp;</p>`;
+					const title = this.$props.pingAnon ? null : mw.Title.makeTitle( 2, ping );
+					if ( !title ) {
+						pingHtml = `<p>@${ mw.html.escape( ping ) }:&nbsp;</p>`;
 					} else {
-						const title = new mw.Title( ping, 2 );
-						pingHtml = `<p>@<a href="${ title.getUrl() }" title="${ title.getPrefixedText() }" rel="mw:WikiLink">${ ping }</a>:&nbsp;</p>`;
+						const link = mw.html.element( 'a', {
+							href: title.getUrl(),
+							title: title.getPrefixedText(),
+							rel: 'mw:WikiLink'
+						}, ping );
+						pingHtml = `<p>@${ link }:&nbsp;</p>`;
 					}
 					$input.val( pingHtml );
 				}
