@@ -11,6 +11,7 @@ use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\SelectQueryBuilder;
 use Wikimedia\Rdbms\UnionQueryBuilder;
 use Wikimedia\Timestamp\ConvertibleTimestamp;
+use Wikimedia\Timestamp\TimestampFormat;
 
 /**
  * Helper class for retrieving comments from the database.
@@ -109,7 +110,7 @@ class CommentsPager {
 		}
 
 		if ( $this->isDateSort() ) {
-			if ( ConvertibleTimestamp::convert( TS_MW, $continue ) === false ) {
+			if ( ConvertibleTimestamp::convert( TimestampFormat::MW, $continue ) === false ) {
 				throw new InvalidArgumentException( 'The continue value is not a timestamp' );
 			}
 		} elseif ( !ctype_digit( (string)$continue ) ) {

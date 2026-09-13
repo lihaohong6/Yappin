@@ -8,6 +8,7 @@ use MediaWiki\SpecialPage\FormSpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\User\ActorStore;
 use MediaWiki\User\ExternalUserNames;
+use Wikimedia\Timestamp\TimestampFormat;
 
 class SpecialExportComments extends FormSpecialPage {
 	private ActorStore $actorStore;
@@ -115,9 +116,9 @@ class SpecialExportComments extends FormSpecialPage {
 			$commentObj = [
 				'id' => (int)$row->yap_id,
 				'parentId' => $row->yap_parent ? (int)$row->yap_parent : null,
-				'timestamp' => wfTimestamp( TS_MW, $row->yap_timestamp ),
+				'timestamp' => wfTimestamp( TimestampFormat::MW, $row->yap_timestamp ),
 				'editedTimestamp' => $row->yap_edited_timestamp
-					? wfTimestamp( TS_MW, $row->yap_edited_timestamp ) : null,
+					? wfTimestamp( TimestampFormat::MW, $row->yap_edited_timestamp ) : null,
 				'wikitext' => $row->yap_wikitext,
 				'username' => $username
 			];

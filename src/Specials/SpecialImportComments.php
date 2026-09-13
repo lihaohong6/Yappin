@@ -30,11 +30,7 @@ class SpecialImportComments extends FormSpecialPage {
 	private UserNameUtils $userNameUtils;
 
 	public function __construct() {
-		if ( version_compare( MW_VERSION, '1.46.0', '<' ) ) {
-			parent::__construct( 'ImportComments', 'yappin-import' );
-		} else {
-			parent::__construct( 'ImportComments' );
-		}
+		parent::__construct( 'ImportComments' );
 		$services = MediaWikiServices::getInstance();
 		$this->dbr = $services->getConnectionProvider()->getReplicaDatabase();
 		$this->parser = $services->getParsoidParserFactory()->create();

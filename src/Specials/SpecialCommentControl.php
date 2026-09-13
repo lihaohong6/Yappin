@@ -12,7 +12,14 @@ use function MediaWiki\Extension\Yappin\Models\commentControlStatusToKey;
 
 class SpecialCommentControl extends SpecialPage {
 	public function __construct() {
-		parent::__construct( 'CommentControl', 'yappin-manage' );
+		parent::__construct( 'CommentControl' );
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getRestriction(): string {
+		return 'yappin-manage';
 	}
 
 	/** @inheritDoc */
