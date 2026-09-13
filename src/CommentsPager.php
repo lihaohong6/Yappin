@@ -355,9 +355,11 @@ class CommentsPager {
 	 */
 	public function fetchAllResults() {
 		$conds = [];
+		$replyConds = [ 'c2.yap_parent = c.yap_id' ];
 
 		if ( !$this->includeDeleted ) {
 			$conds[] = 'yap_deleted_actor IS NULL';
+			$replyConds[] = 'c2.yap_deleted_actor IS NULL';
 		}
 
 		if ( $this->filterByActor !== null ) {
@@ -384,7 +386,7 @@ class CommentsPager {
 			->select( [ 'c.*', '(' . $this->db->newSelectQueryBuilder()
 				->select( 'COUNT(*)' )
 				->from( Comment::TABLE_NAME, 'c2' )
-				->where( [ 'c2.yap_parent = c.yap_id' ] )
+				->where( $replyConds )
 				->getSQL() . ') as num_children'
 			] )
 			->from( Comment::TABLE_NAME, 'c' )
