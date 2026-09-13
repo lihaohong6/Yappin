@@ -11,7 +11,6 @@ use MediaWiki\Rest\Response;
 use MediaWiki\Rest\SimpleHandler;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
-use MediaWiki\User\UserNameUtils;
 use Wikimedia\Message\MessageValue;
 use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\ParamValidator\TypeDef\NumericDef;
@@ -31,21 +30,14 @@ class ApiGetAllComments extends SimpleHandler {
 
 	private IReadableDatabase $dbr;
 
-	/**
-	 * @var UserNameUtils
-	 */
-	private $userNameUtils;
-
 	public function __construct(
 		TitleFactory $titleFactory,
 		ActorStore $actorStore,
-		LBFactory $factory,
-		UserNameUtils $userNameUtils
+		LBFactory $factory
 	) {
 		$this->titleFactory = $titleFactory;
 		$this->actorStore = $actorStore;
 		$this->dbr = $factory->getReplicaDatabase();
-		$this->userNameUtils = $userNameUtils;
 	}
 
 	/**
@@ -80,18 +72,9 @@ class ApiGetAllComments extends SimpleHandler {
 		$showDeleted = Utils::canUserModerate( $this->getAuthority() );
 
 		$targetActor = null;
-		$targetUserName = $params[ 'user' ] ? ucfirst( trim( $params[ 'user' ] ) ) : null;
-		if ( $targetUserName !== null && $targetUserName !== '' ) {
-			// To avoid useless DB lookups, check whether the name would be valid
-			if ( !$this->userNameUtils->isIP( $targetUserName ) && !$this->userNameUtils->isValid( $targetUserName ) ) {
-				return $this->getResponseFactory()->createJson( [
-					'query' => [],
-					'comments' => [],
-					'isMod' => $showDeleted
-				] );
-			}
-
-			$targetActor = $this->actorStore->findActorIdByName( $params[ 'user' ], $this->dbr );
+		$targetUserName = trim( $params[ 'user' ] ?? '' );
+		if ( $targetUserName !== '' ) {
+			$targetActor = $this->actorStore->findActorIdByName( $targetUserName, $this->dbr );
 			if ( $targetActor === null ) {
 				return $this->getResponseFactory()->createJson( [
 					'query' => [],

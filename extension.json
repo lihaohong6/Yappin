@@ -126,8 +126,7 @@
 			"services": [
 				"TitleFactory",
 				"ActorStore",
-				"DBLoadBalancerFactory",
-				"UserNameUtils"
+				"DBLoadBalancerFactory"
 			]
 		},
 		{
@@ -137,8 +136,7 @@
 			"services": [
 				"TitleFactory",
 				"ActorStore",
-				"DBLoadBalancerFactory",
-				"UserNameUtils"
+				"DBLoadBalancerFactory"
 			]
 		},
 		{
