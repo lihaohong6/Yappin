@@ -187,16 +187,15 @@ class SpecialCommentControl extends SpecialPage {
 				'yc_page' => $id,
 			] )->caller( __METHOD__ )->execute();
 		} else {
-			$values = [
-				'yc_page' => $id,
-				'yc_restriction' => $status->value,
-			];
 			$dbw->newInsertQueryBuilder()
 				->insertInto( 'yappin_control' )
-				->set( $values )
-				->row( $values )
+				->row( [
+					'yc_page' => $id,
+					'yc_restriction' => $status->value,
+				] )
 				->onDuplicateKeyUpdate()
 				->uniqueIndexFields( [ 'yc_page' ] )
+				->set( [ 'yc_restriction' => $status->value ] )
 				->caller( __METHOD__ )
 				->execute();
 		}
