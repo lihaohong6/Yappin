@@ -17,7 +17,7 @@ Caveats:
 - The original extension written by Weird Gloop deliberately minimizes its feature set to improve maintainability. This fork, in contrast, has a LOT of features, and is likely buggier than the original.
 
 ## Dependencies
-Requires MediaWiki 1.45+ and the Echo extension.
+Requires MediaWiki 1.46+ and the Echo extension.
 
 Optionally works with [VisualEditor](https://www.mediawiki.org/wiki/Extension:VisualEditor) and [UserProfileV2](https://www.mediawiki.org/wiki/Extension:UserProfileV2).
 
