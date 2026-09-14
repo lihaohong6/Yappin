@@ -69,8 +69,8 @@
 							:title="$i18n( 'yappin-action-label-edit' ).text()"
 						></comment-action>
 						<comment-action
-							v-if="!store.isReadOnly &&
-								( ( comment.ours && comment.deleted === null ) || store.isMod )"
+							v-if="( !store.isReadOnly && comment.ours &&
+								comment.deleted === null ) || store.isMod"
 							class="comment-action-delete"
 							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
 							:on-click="deleteComment"

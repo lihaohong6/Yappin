@@ -90,8 +90,11 @@ class ApiEditComment extends CommentWriteHandler {
 		if ( $blocked !== false ) {
 			throw new LocalizedHttpException( $blocked, 403 );
 		}
-		// No deletion in readonly mode.
-		$this->assertNotReadOnly();
+		$isMod = Utils::canUserModerate( $authority );
+		// Moderators can still clean up comments in read-only mode.
+		if ( !$isMod ) {
+			$this->assertNotReadOnly();
+		}
 
 		$body = $this->getValidatedBody() ?? [];
 		$params = $this->getValidatedParams();
@@ -101,7 +104,6 @@ class ApiEditComment extends CommentWriteHandler {
 		$comment = $this->loadComment( $commentId, 'yappin-generic-error-comment-missing' );
 
 		$ownComment = self::isOwnComment( $comment, $authority );
-		$isMod = Utils::canUserModerate( $authority );
 
 		if ( $ownComment && $delete ) {
 			$comment->setDeletedActor( $comment->getActor() );
