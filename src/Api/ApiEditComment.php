@@ -42,13 +42,7 @@ class ApiEditComment extends CommentWriteHandler {
 		$comment = $this->loadNotDeletedComment( $commentId, 'yappin-generic-error-comment-missing' );
 
 		// Editing must respect the same page-level restrictions as posting.
-		$page = $comment->getTitle();
-		if ( !$page ) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400
-			);
-		}
-		$this->pageAcceptsNewComments( $page );
+		$this->pageAcceptsNewComments( $comment->getTitle() );
 
 		if ( !self::isOwnComment( $comment, $this->getAuthority() ) ) {
 			throw new LocalizedHttpException(
@@ -75,8 +69,12 @@ class ApiEditComment extends CommentWriteHandler {
 	 * @return bool
 	 */
 	private static function isOwnComment( Comment $comment, Authority $authority ): bool {
-		$user = $authority->getUser();
-		return $user->isRegistered() && $comment->getActor()->getId() === $user->getId();
+		// Imported comments have no actor
+		if ( !$comment->mActorId ) {
+			return false;
+		}
+
+		return $comment->getActor()->equals( $authority->getUser() );
 	}
 
 	/**

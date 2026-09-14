@@ -6,8 +6,6 @@ use InvalidArgumentException;
 use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\CommentFactory;
 use MediaWiki\Extension\Yappin\Models\Comment;
-use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
-use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\Extension\Yappin\Utils;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\SimpleHandler;
@@ -96,14 +94,8 @@ abstract class CommentWriteHandler extends SimpleHandler {
 		}
 	}
 
-	protected function pageAcceptsNewComments( Title $page ): void {
-		if ( !Utils::isCommentsEnabled( $this->config, $page )
-			|| SpecialCommentControl::getControlStatus( $page ) !== CommentControlStatus::ENABLED
-		) {
-			throw new LocalizedHttpException(
-				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400
-			);
-		}
+	protected function pageAcceptsNewComments( ?Title $page ): void {
+		Utils::assertPageAcceptsComments( $this->config, $page );
 	}
 
 	protected function loadComment( int $commentId, string $errorKey ): Comment {

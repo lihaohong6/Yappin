@@ -70,7 +70,7 @@
 						></comment-action>
 						<comment-action
 							v-if="!store.isReadOnly &&
-								( comment.ours && comment.deleted === null ) || store.isMod"
+								( ( comment.ours && comment.deleted === null ) || store.isMod )"
 							class="comment-action-delete"
 							:icon="comment.deleted ? cdxIconRestore : cdxIconTrash"
 							:on-click="deleteComment"

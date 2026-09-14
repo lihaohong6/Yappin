@@ -4,6 +4,8 @@ namespace MediaWiki\Extension\Yappin;
 
 use MediaWiki\Block\AbstractBlock;
 use MediaWiki\Config\Config;
+use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
+use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
 use MediaWiki\Output\OutputPage;
@@ -122,6 +124,23 @@ class Utils {
 		}
 
 		throw new LocalizedHttpException( MessageValue::newFromSpecifier( $msg ), 400 );
+	}
+
+	/**
+	 * Asserts that a page is currently accepting changes to its comment section.
+	 *
+	 * @throws LocalizedHttpException if comments are disabled or read-only on the page
+	 */
+	public static function assertPageAcceptsComments( Config $config, ?Title $title ): void {
+		if (
+			!$title ||
+			!self::isCommentsEnabled( $config, $title ) ||
+			SpecialCommentControl::getControlStatus( $title ) !== CommentControlStatus::ENABLED
+		) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-submit-error-comments-disabled' ), 400
+			);
+		}
 	}
 
 	/**

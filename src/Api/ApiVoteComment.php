@@ -84,6 +84,8 @@ class ApiVoteComment extends SimpleHandler {
 			);
 		}
 
+		Utils::assertPageAcceptsComments( $this->config, $comment->getTitle() );
+
 		// Voting deliberately does not auto-create a temporary account: it is a one-click action,
 		// and quietly registering an account behind it would surprise the user.
 		$user = $auth->getUser();
