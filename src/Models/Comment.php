@@ -11,9 +11,11 @@ use MediaWiki\Parser\ParserOptions;
 use MediaWiki\Parser\Parsoid\HtmlTransformFactory;
 use MediaWiki\Parser\Parsoid\ParsoidParserFactory;
 use MediaWiki\Registration\ExtensionRegistry;
+use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
 use MediaWiki\User\ActorStore;
+use MediaWiki\User\ExternalUserNames;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserIdentity;
 use MediaWiki\User\UserIdentityUtils;
@@ -552,10 +554,36 @@ class Comment {
 	 * @return array
 	 */
 	public function toArray(): array {
+		$actor = $this->getActor();
+		$userName = $actor->getName();
+		$userAnon = !$actor->isRegistered();
+		$userTemp = $this->userIdentityUtils->isTemp( $actor );
+		$userUrl = null;
+		$userClasses = [ 'mw-userlink' ];
+
+		if ( $userTemp ) {
+			$userUrl = SpecialPage::getTitleFor( 'Comments', $userName )->getLocalURL();
+			$userClasses[] = 'mw-tempuserlink';
+		} elseif ( $userAnon ) {
+			if ( ExternalUserNames::isExternal( $userName ) ) {
+				$userLinkTitle = ExternalUserNames::getUserLinkTitle( $userName );
+				if ( $userLinkTitle ) {
+					$userUrl = $userLinkTitle->getFullURL();
+					$userClasses[] = 'extiw';
+				}
+				$userClasses[] = 'mw-extuserlink';
+			} else {
+				$userUrl = SpecialPage::getTitleFor( 'Comments', $userName )->getLocalURL();
+			}
+			$userClasses[] = 'mw-anonuserlink';
+		} else {
+			$userUrl = Title::makeTitle( NS_USER, $userName )->getLocalURL();
+		}
+
 		$showAvatars = $this->config->get( 'YappinShowUPV2Avatars' );
 		$avatarUrl = null;
 		if ( $showAvatars && ExtensionRegistry::getInstance()->isLoaded( 'UserProfileV2' ) ) {
-			$userId = $this->getActor()->getId();
+			$userId = $actor->getId();
 			$avatar = new UserProfileV2Avatar( $userId );
 			$avatarUrl = $avatar->getAvatarUrl( [ "raw" => true ] ) ?: null;
 		}
@@ -565,9 +593,11 @@ class Comment {
 			'created' => wfTimestamp( TimestampFormat::ISO_8601, $this->mCreatedTimestamp ),
 			'edited' => wfTimestampOrNull( TimestampFormat::ISO_8601, $this->mEditedTimestamp ),
 			'user' => [
-				'name' => $this->getActor()->getName(),
-				'anon' => !$this->getActor()->isRegistered(),
-				'temp' => $this->userIdentityUtils->isTemp( $this->getActor() ),
+				'name' => $userName,
+				'anon' => $userAnon,
+				'temp' => $userTemp,
+				'url' => $userUrl,
+				'classes' => $userClasses,
 				'avatar' => $avatarUrl,
 			],
 			'parent' => $this->mParentId,

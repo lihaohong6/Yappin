@@ -91,9 +91,18 @@ class SpecialImportComments extends FormSpecialPage {
 
 		$skipExisting = $data['skipexisting'] ?? false;
 		$attachUsers = $data['attachusers'] ?? false;
+		$prefix = trim( $data['prefix'] ?? '' );
+
+		if ( $prefix === '' ) {
+			$prefix = 'imported';
+		}
+
+		if ( str_contains( $prefix, '>' ) ) {
+			return Status::newFatal( 'yappin-import-invalid-prefix' );
+		}
 
 		try {
-			$this->doImport( $parseResult->getValue(), $skipExisting, $attachUsers );
+			$this->doImport( $parseResult->getValue(), $skipExisting, $attachUsers, $prefix );
 		} catch ( Exception $e ) {
 			return Status::newFatal( 'yappin-import-failed', $e->getMessage() );
 		}
@@ -101,7 +110,7 @@ class SpecialImportComments extends FormSpecialPage {
 		return Status::newGood();
 	}
 
-	private function doImport( array $json, bool $skipExisting, bool $attachUsers ): void {
+	private function doImport( array $json, bool $skipExisting, bool $attachUsers, string $prefix ): void {
 		$output = $this->getOutput();
 		$services = MediaWikiServices::getInstance();
 		$dbw = $services->getConnectionProvider()->getPrimaryDatabase();
@@ -145,7 +154,8 @@ class SpecialImportComments extends FormSpecialPage {
 				$dbw,
 				$output,
 				$skipExisting,
-				$attachUsers
+				$attachUsers,
+				$prefix
 			);
 
 			$totalImported += $pageImported;
@@ -196,7 +206,8 @@ class SpecialImportComments extends FormSpecialPage {
 		IDatabase $dbw,
 		OutputPage $output,
 		bool $skipExisting,
-		bool $attachUsers
+		bool $attachUsers,
+		string $prefix
 	): array {
 		$pageId = $title->getArticleID();
 		$importedCounter = 0;
@@ -250,7 +261,9 @@ class SpecialImportComments extends FormSpecialPage {
 					$actorUser = $this->userLookup->getUserIdentityByName( $username );
 				}
 				if ( $actorUser === null ) {
-					$actorUser = UserIdentityValue::newExternal( 'imported', $username );
+					$actorUser = $this->userNameUtils->isIP( $username )
+						? UserIdentityValue::newAnonymous( $username )
+						: UserIdentityValue::newExternal( $prefix, $username );
 				}
 				$actorId = $this->actorStore->acquireActorId( $actorUser, $dbw );
 
@@ -318,17 +331,23 @@ class SpecialImportComments extends FormSpecialPage {
 				'label-message' => 'yappin-import-file-label',
 				'accept' => [ 'application/json' ],
 			],
-			'skipexisting' => [
-				'type' => 'check',
-				'label-message' => 'yappin-import-skip-existing',
-				'default' => true,
-				'help-message' => 'yappin-import-skip-existing-help',
+			'prefix' => [
+				'type' => 'text',
+				'label-message' => 'yappin-import-prefix',
+				'default' => 'imported',
+				'help-message' => 'yappin-import-prefix-help',
 			],
 			'attachusers' => [
 				'type' => 'check',
 				'label-message' => 'yappin-import-attach-users',
 				'default' => false,
 				'help-message' => 'yappin-import-attach-users-help',
+			],
+			'skipexisting' => [
+				'type' => 'check',
+				'label-message' => 'yappin-import-skip-existing',
+				'default' => true,
+				'help-message' => 'yappin-import-skip-existing-help',
 			],
 		];
 	}

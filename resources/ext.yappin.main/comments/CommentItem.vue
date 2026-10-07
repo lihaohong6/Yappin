@@ -15,16 +15,20 @@
 				<div class="comment-header">
 					<div class="comment-author-wrapper">
 						<a
-							v-if="!comment.user.anon"
-							class="comment-author mw-userlink"
-							:class="{ 'mw-tempuserlink': comment.user.temp }"
-							:href="userPageLink"
+							v-if="comment.user.url !== null"
+							class="comment-author"
+							:class="comment.user.classes"
+							:href="comment.user.url"
 						>
-							{{ comment.user.name }}
+							<bdi>{{ comment.user.name }}</bdi>
 						</a>
-						<div v-else class="comment-author">
-							{{ comment.user.name }}
-						</div>
+						<span
+							v-else
+							class="comment-author"
+							:class="comment.user.classes"
+						>
+							<bdi>{{ comment.user.name }}</bdi>
+						</span>
 						<comment-rating
 							v-if="!store.isReadOnly && !comment.deleted"
 							:comment="comment"
@@ -213,13 +217,6 @@ module.exports = exports = defineComponent( {
 		},
 		editedDate() {
 			return moment( this.comment.edited ).fromNow();
-		},
-		userPageLink() {
-			if ( this.comment.user.anon ) {
-				return '';
-			}
-			const title = new mw.Title( this.comment.user.name, 2 ); // 2 = User
-			return title.getUrl();
 		},
 		/**
 		 * @return {mw.Title|null}
