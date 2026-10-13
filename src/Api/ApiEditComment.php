@@ -44,6 +44,12 @@ class ApiEditComment extends CommentWriteHandler {
 		// Editing must respect the same page-level restrictions as posting.
 		$this->pageAcceptsNewComments( $comment->getTitle() );
 
+		if ( $comment->mActorId && !$comment->getActor()->isRegistered() ) {
+			throw new LocalizedHttpException(
+				new MessageValue( 'yappin-edit-error-anonymous' ), 400
+			);
+		}
+
 		if ( !self::isOwnComment( $comment, $this->getAuthority() ) ) {
 			throw new LocalizedHttpException(
 				new MessageValue( 'yappin-generic-error-notself' ), 400
@@ -74,7 +80,8 @@ class ApiEditComment extends CommentWriteHandler {
 			return false;
 		}
 
-		return $comment->getActor()->equals( $authority->getUser() );
+		return $comment->getActor()->isRegistered() &&
+			$comment->getActor()->equals( $authority->getUser() );
 	}
 
 	/**

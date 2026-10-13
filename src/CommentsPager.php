@@ -483,7 +483,7 @@ class CommentsPager {
 			// The current user's rating, if we retrieved it
 			'ur' => isset( $row->yr_rating ) ? (int)$row->yr_rating : 0,
 			// Whether this comment belongs to the current actor
-			'ours' => $this->currentActor === $comment->mActorId,
+			'ours' => $comment->getActor()->isRegistered() && $this->currentActor === $comment->mActorId,
 			// The page for the comment, only returned if there was no target page given to the pager instance
 			'p' => property_exists( $row, 'page_title' ) ? [
 				'title' => $row->page_title,

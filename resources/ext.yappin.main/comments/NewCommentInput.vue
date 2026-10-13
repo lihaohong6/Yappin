@@ -134,7 +134,7 @@ module.exports = exports = defineComponent( {
 				dataType: 'json',
 				contentType: 'application/json'
 			} ).then( ( data ) => {
-				data.comment.ours = true;
+				data.comment.ours = !data.comment.user.anon;
 				const newComment = new Comment( data.comment );
 
 				if ( this.$props.parentId ) {
