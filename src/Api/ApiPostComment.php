@@ -17,6 +17,8 @@ use MediaWiki\Parser\ParserOutputLinkTypes;
 use MediaWiki\Rest\HttpException;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Rest\Response;
+use MediaWiki\Rest\TokenAwareHandlerTrait;
+use MediaWiki\Rest\Validator\Validator;
 use MediaWiki\Status\StatusFormatter;
 use MediaWiki\Title\Title;
 use MediaWiki\Title\TitleFactory;
@@ -28,6 +30,8 @@ use Wikimedia\ParamValidator\ParamValidator;
 use Wikimedia\Parsoid\Core\LinkTarget as ParsoidLinkTarget;
 
 class ApiPostComment extends CommentWriteHandler {
+	use TokenAwareHandlerTrait;
+
 	/**
 	 * @var TitleFactory
 	 */
@@ -128,6 +132,12 @@ class ApiPostComment extends CommentWriteHandler {
 		] );
 	}
 
+	/** @inheritDoc */
+	public function validate( Validator $restValidator ): void {
+		parent::validate( $restValidator );
+		$this->validateToken( true );
+	}
+
 	/**
 	 * @inheritDoc
 	 */
@@ -143,7 +153,7 @@ class ApiPostComment extends CommentWriteHandler {
 				ParamValidator::PARAM_TYPE => 'integer',
 				ParamValidator::PARAM_REQUIRED => false
 			]
-		], self::getContentBodyParamSettings() );
+		], self::getContentBodyParamSettings(), $this->getTokenParamDefinition() );
 	}
 
 	/**

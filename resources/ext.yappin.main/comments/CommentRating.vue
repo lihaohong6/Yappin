@@ -78,7 +78,8 @@ module.exports = exports = defineComponent( {
 			this.$props.comment.userRating = newValue;
 
 			api.post( `/comments/v0/comment/${ this.$props.comment.id }/vote`, {
-				rating: newValue
+				rating: newValue,
+				token: mw.user.tokens.get( 'csrfToken' )
 			} ).then( ( data ) => {
 				this.$props.comment.rating = data.comment.rating;
 			} ).always( () => {

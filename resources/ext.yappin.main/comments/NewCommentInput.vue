@@ -108,7 +108,9 @@ module.exports = exports = defineComponent( {
 	},
 	methods: {
 		submitComment() {
-			const body = {};
+			const body = {
+				token: mw.user.tokens.get( 'csrfToken' )
+			};
 
 			// If we're replying to another comment, we don't need to provide a page ID
 			if ( this.$props.parentId ) {
