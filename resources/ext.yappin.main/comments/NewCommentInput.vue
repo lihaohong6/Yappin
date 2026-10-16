@@ -48,6 +48,7 @@ const Comment = require( '../comment.js' );
 const { extractApiError, warnIfTooLong } = require( '../util.js' );
 
 const api = new mw.Rest();
+const actionApi = new mw.Api();
 
 const config = mw.config.get( [
 	'wgArticleId',
@@ -87,6 +88,7 @@ module.exports = exports = defineComponent( {
 	},
 	data() {
 		return {
+			invalidatedAnonToken: false,
 			store,
 			ve: null,
 			showPreview: false,
@@ -108,9 +110,7 @@ module.exports = exports = defineComponent( {
 	},
 	methods: {
 		submitComment() {
-			const body = {
-				token: mw.user.tokens.get( 'csrfToken' )
-			};
+			const body = {};
 
 			// If we're replying to another comment, we don't need to provide a page ID
 			if ( this.$props.parentId ) {
@@ -129,39 +129,51 @@ module.exports = exports = defineComponent( {
 				body.wikitext = this.$refs.input.value;
 			}
 
-			// Use .ajax here rather than .post to circumvent bug: https://bugs.jquery.com/ticket/12326/
-			api.ajax( '/comments/v0/comment', {
-				type: 'POST',
-				data: JSON.stringify( body ),
-				dataType: 'json',
-				contentType: 'application/json'
-			} ).then( ( data ) => {
-				data.comment.ours = !data.comment.user.anon;
-				const newComment = new Comment( data.comment );
+			actionApi.getToken( 'csrf' ).then( ( token ) => {
+				body.token = token;
 
-				if ( this.$props.parentId ) {
-					// Reply to an existing comment, add it to the end of the children list
-					const ix = this.$data.store.comments.findIndex(
-						( c ) => c.id === this.$props.parentId
-					);
-					this.$data.store.comments[ ix ].children.push( newComment );
-				} else {
-					// Top-level comment, just throw it to the top of the comments list
-					this.$data.store.comments.unshift( newComment );
-				}
+				// Use .ajax here rather than .post to circumvent bug: https://bugs.jquery.com/ticket/12326/
+				api.ajax( '/comments/v0/comment', {
+					type: 'POST',
+					data: JSON.stringify( body ),
+					dataType: 'json',
+					contentType: 'application/json'
+				} ).then( ( data ) => {
+					if ( data.comment.user.temp && !this.invalidatedAnonToken && mw.user.isAnon() ) {
+						// A temporary account was created, so we need to invalidate the CSRF token
+						actionApi.badToken( 'csrf' );
+						this.invalidatedAnonToken = true;
+					}
 
-				this.$props.onCancel();
-			} ).catch( ( _, result ) => {
-				const { key, text } = extractApiError( result );
-				if ( key === 'yappin-submit-error-spam' ) {
-					// If the comment was rejected for spam/abuse, add a small cooldown
-					this.$data.store.globalCooldown = 10;
-				}
-				if ( text === null ) {
-					mw.log.error( result );
-				}
-				mw.notify( text || mw.message( 'unknown-error' ).text(),
-					{ type: 'error', tag: 'post-comment-error' } );
+					data.comment.ours = !data.comment.user.anon;
+					const newComment = new Comment( data.comment );
+
+					if ( this.$props.parentId ) {
+						// Reply to an existing comment, add it to the end of the children list
+						const ix = this.$data.store.comments.findIndex(
+							( c ) => c.id === this.$props.parentId
+						);
+						this.$data.store.comments[ ix ].children.push( newComment );
+					} else {
+						// Top-level comment, just throw it to the top of the comments list
+						this.$data.store.comments.unshift( newComment );
+					}
+
+					this.$props.onCancel();
+				} ).catch( ( _, result ) => {
+					const { key, text } = extractApiError( result );
+					if ( key === 'yappin-submit-error-spam' ) {
+						// If the comment was rejected for spam/abuse, add a small cooldown
+						this.$data.store.globalCooldown = 10;
+					}
+					if ( text === null ) {
+						mw.log.error( result );
+					}
+					mw.notify( text || mw.message( 'unknown-error' ).text(),
+						{ type: 'error', tag: 'post-comment-error' } );
+				} );
+			}, ( code, data ) => {
+				mw.notify( actionApi.getErrorMessage( data ), { type: 'error' } );
 			} );
 		},
 		previewComment() {
