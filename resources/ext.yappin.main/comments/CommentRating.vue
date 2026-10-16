@@ -37,6 +37,7 @@ const { cdxIconUpTriangle, cdxIconDownTriangle } = require( '../icons.json' );
 const { extractApiError } = require( '../util.js' );
 
 const api = new mw.Rest();
+const actionApi = new mw.Api();
 
 module.exports = exports = defineComponent( {
 	name: 'CommentRating',
@@ -77,20 +78,36 @@ module.exports = exports = defineComponent( {
 			const oldValue = this.$props.comment.userRating;
 			this.$props.comment.userRating = newValue;
 
-			api.post( `/comments/v0/comment/${ this.$props.comment.id }/vote`, {
-				rating: newValue,
-				token: mw.user.tokens.get( 'csrfToken' )
-			} ).then( ( data ) => {
-				this.$props.comment.rating = data.comment.rating;
-			} ).always( () => {
-				this.$data.waiting = false;
-			} ).catch( ( _, result ) => {
-				// Reset the UI state back to the previous value if the API call failed
-				this.$props.comment.userRating = oldValue;
+			this.changeRating( newValue, oldValue );
+		},
 
-				const { text } = extractApiError( result );
-				mw.notify( text || mw.message( 'unknown-error' ).text(),
-					{ type: 'error', tag: 'vote-comment-error' } );
+		changeRating( newValue, oldValue, retryOnTokenMismatch = true ) {
+			actionApi.getToken( 'csrf' ).then( ( token ) => {
+				api.post( `/comments/v0/comment/${ this.$props.comment.id }/vote`, {
+					rating: newValue,
+					token: token
+				} ).then( ( data ) => {
+					this.$props.comment.rating = data.comment.rating;
+				} ).always( () => {
+					this.$data.waiting = false;
+				} ).catch( ( _, result ) => {
+					if ( retryOnTokenMismatch &&
+						result &&
+						result.xhr &&
+						result.xhr.responseJSON &&
+						result.xhr.responseJSON.errorKey === 'rest-badtoken'
+					) {
+						actionApi.badToken( 'csrf' );
+						return this.changeRating( newValue, oldValue, false );
+					}
+
+					// Reset the UI state back to the previous value if the API call failed
+					this.$props.comment.userRating = oldValue;
+
+					const { text } = extractApiError( result );
+					mw.notify( text || mw.message( 'unknown-error' ).text(),
+						{ type: 'error', tag: 'vote-comment-error' } );
+				} );
 			} );
 		}
 	}
