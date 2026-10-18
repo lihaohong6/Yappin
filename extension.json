@@ -297,7 +297,8 @@
 		"ext.yappin.ve.desktop": {
 			"dependencies": [
 				"ext.visualEditor.core.desktop",
-				"ext.visualEditor.desktopTarget"
+				"ext.visualEditor.desktopTarget",
+				"ext.visualEditor.mwextensions.desktop"
 			]
 		},
 		"ext.yappin.ve.mobile": {
@@ -321,7 +322,7 @@
 				"ext.visualEditor.data",
 				"ext.visualEditor.icons",
 				"ext.visualEditor.mediawiki",
-				"ext.visualEditor.mwextensions.desktop",
+				"ext.visualEditor.mwextensions",
 				"ext.visualEditor.mwimage",
 				"ext.visualEditor.mwlink",
 				"ext.visualEditor.mwtransclusion",

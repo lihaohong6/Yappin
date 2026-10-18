@@ -125,6 +125,7 @@ module.exports = exports = defineComponent( {
 					} )
 					.always( () => {
 						this.$data.initialLoadCompleted = true;
+						this.loadVE();
 					} );
 			} else {
 				// Get a list of all comments for the current page
@@ -172,9 +173,15 @@ module.exports = exports = defineComponent( {
 					.always( () => {
 						if ( this.$data.initialLoadCompleted !== true ) {
 							this.$data.initialLoadCompleted = true;
+							this.loadVE();
 						}
 						this.$data.loading = false;
 					} );
+			}
+		},
+		loadVE() {
+			if ( !this.$data.store.isReadOnly ) {
+				this.$data.store.loadVE();
 			}
 		},
 		checkVisible() {

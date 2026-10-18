@@ -6,11 +6,9 @@ use MediaWiki\Block\AbstractBlock;
 use MediaWiki\Config\Config;
 use MediaWiki\Extension\Yappin\Models\CommentControlStatus;
 use MediaWiki\Extension\Yappin\Specials\SpecialCommentControl;
-use MediaWiki\MediaWikiServices;
 use MediaWiki\Message\Message;
 use MediaWiki\Output\OutputPage;
 use MediaWiki\Permissions\Authority;
-use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Rest\LocalizedHttpException;
 use MediaWiki\Status\StatusFormatter;
@@ -158,17 +156,6 @@ class Utils {
 	 * @return void
 	 */
 	public static function loadCommentsModule( OutputPage $out, Config $config ) {
-		$useVE = $config->get( 'YappinUseVisualEditor' ) &&
-			ExtensionRegistry::getInstance()->isLoaded( 'VisualEditor' );
-
-		if ( $useVE ) {
-			$services = MediaWikiServices::getInstance();
-			$isMobile = ExtensionRegistry::getInstance()->isLoaded( 'MobileFrontend' ) &&
-				$services->getService( 'MobileFrontend.Context' )->shouldDisplayMobileView();
-			$out->addModules( [ $isMobile ? 'ext.yappin.ve.mobile' : 'ext.yappin.ve.desktop' ] );
-			$out->addModules( [ 'ext.yappin.ve' ] );
-		}
-
 		$out->addModules( [ 'ext.yappin.main' ] );
 	}
 

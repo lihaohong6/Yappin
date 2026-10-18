@@ -11,6 +11,7 @@ use MediaWiki\Hook\ContributionsToolLinksHook;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Output\Hook\BeforePageDisplayHook;
 use MediaWiki\Output\OutputPage;
+use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\ResourceLoader\Hook\ResourceLoaderGetConfigVarsHook;
 use MediaWiki\Skin\Hook\SidebarBeforeOutputHook;
 use MediaWiki\Skin\Skin;
@@ -76,7 +77,8 @@ class GeneralHookHandlers implements
 		$vars['wgYappin'] = [
 			'resultsPerPage' => $config->get( 'YappinResultsPerPage' ),
 			'readOnly' => $config->get( 'YappinReadOnly' ),
-			'useVisualEditor' => $config->get( 'YappinUseVisualEditor' ),
+			'useVisualEditor' => $config->get( 'YappinUseVisualEditor' ) &&
+				ExtensionRegistry::getInstance()->isLoaded( 'VisualEditor' ),
 			'maxCommentLength' => $config->get( 'YappinMaxCommentLength' ),
 		];
 	}

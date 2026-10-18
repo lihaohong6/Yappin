@@ -160,11 +160,8 @@
 	// Static methods
 
 	mw.commentsExt.ve.Editor.static.isSupported = function () {
-		const isMobileTarget = ( mw.config.get( 'skin' ) === 'minerva' );
-
 		/* global VisualEditorSupportCheck */
 		return !!(
-			!isMobileTarget &&
 			mw.loader.getState( 'ext.visualEditor.core' ) &&
 			window.VisualEditorSupportCheck && VisualEditorSupportCheck
 		);

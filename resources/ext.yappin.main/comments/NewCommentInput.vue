@@ -20,14 +20,14 @@
 				</span>
 				<span v-else>{{ $i18n( 'yappin-post-submit-child' ).text() }}</span>
 			</cdx-button>
-			<cdx-button v-if="!useVE" @click="previewComment">
+			<cdx-button v-if="useWikitext" @click="previewComment">
 				{{ $i18n( 'yappin-preview-button' ).text() }}
 			</cdx-button>
 			<cdx-button action="destructive" @click="onCancel">
 				{{ $i18n( 'cancel' ).text() }}
 			</cdx-button>
 		</div>
-		<div v-if="!useVE && showPreview" class="comment-preview">
+		<div v-if="useWikitext && showPreview" class="comment-preview">
 			<strong>{{ $i18n( 'yappin-preview-label' ).text() }}</strong>
 			<div class="comment-preview-content">
 				<span v-if="isLoadingPreview">
@@ -92,7 +92,8 @@ module.exports = exports = defineComponent( {
 			ve: null,
 			showPreview: false,
 			previewHtml: '',
-			isLoadingPreview: false
+			isLoadingPreview: false,
+			unmounted: false
 		};
 	},
 	computed: {
@@ -100,11 +101,10 @@ module.exports = exports = defineComponent( {
 			return this.$props.parentId === null;
 		},
 		useVE() {
-			const commentsConfig = mw.config.get( 'wgYappin' );
-			return commentsConfig.useVisualEditor === true &&
-				typeof mw.commentsExt !== 'undefined' &&
-				typeof mw.commentsExt.ve !== 'undefined' &&
-				mw.commentsExt.ve.Editor.static.isSupported();
+			return this.store.veState === 'ready';
+		},
+		useWikitext() {
+			return this.store.veState === 'failed';
 		}
 	},
 	methods: {
@@ -179,6 +179,52 @@ module.exports = exports = defineComponent( {
 				mw.notify( actionApi.getErrorMessage( data ), { type: 'error' } );
 			} );
 		},
+		openInput( $input ) {
+			if ( this.ve ) {
+				return;
+			}
+			const ping = this.$props.ping;
+			if ( this.useVE ) {
+				// If a user needs to be explicitly pinged due to the lack of nested replies,
+				// fill in the ping as a link in VE
+				if ( ping !== '' ) {
+					let pingHtml;
+					const title = this.$props.pingAnon ? null : mw.Title.makeTitle( 2, ping );
+					if ( !title ) {
+						pingHtml = `<p>@${ mw.html.escape( ping ) }:&nbsp;</p>`;
+					} else {
+						const link = mw.html.element( 'a', {
+							href: title.getUrl(),
+							title: title.getPrefixedText(),
+							rel: 'mw:WikiLink'
+						}, ping );
+						pingHtml = `<p>@${ link }:&nbsp;</p>`;
+					}
+					$input.val( pingHtml );
+				}
+				// Create the VE instance for this editor
+				this.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
+				// FIXME: the cursor is at the beginning of VE instead of end
+				// this.ve.moveCursorToEnd();
+			} else {
+				let text = '';
+				if ( ping !== '' ) {
+					if ( ping.startsWith( 'imported>' ) ) {
+						text = `@${ ping }: `;
+					} else {
+						text = `@[[User:${ ping }|${ ping }]]: `;
+					}
+				}
+				$input.val( text );
+				// Wait for the DOM update before focusing.
+				this.$nextTick( () => {
+					const input = this.$refs.input;
+					input.focus();
+					// Put the cursor after the ping prefix, if there is one
+					input.setSelectionRange( text.length, text.length );
+				} );
+			}
+		},
 		previewComment() {
 			const wikitext = this.$refs.input.value;
 			const tooLong = warnIfTooLong( wikitext );
@@ -205,59 +251,7 @@ module.exports = exports = defineComponent( {
 	watch: {
 		isWritingComment( val ) {
 			const $input = $( this.$refs.input );
-			if ( !this.useVE ) {
-				const ping = this.$props.ping;
-				let text = '';
-				if ( ping !== '' ) {
-					if ( ping.startsWith( 'imported>' ) ) {
-						text = `@${ ping }: `;
-					} else {
-						text = `@[[User:${ ping }|${ ping }]]: `;
-					}
-				}
-				$input.val( text );
-				this.$data.showPreview = false;
-				this.$data.previewHtml = '';
-
-				if ( val === true ) {
-					// Wait for the DOM update before focusing.
-					this.$nextTick( () => {
-						const input = this.$refs.input;
-						input.focus();
-						// Put the cursor after the ping prefix, if there is one
-						input.setSelectionRange( text.length, text.length );
-					} );
-				}
-			} else if ( val === true && this.ve === null ) {
-				// If a user needs to be explicitly pinged due to the lack of nested replies,
-				// fill in the ping as a link in VE
-				const ping = this.$props.ping;
-				if ( ping !== '' ) {
-					let pingHtml;
-					const title = this.$props.pingAnon ? null : mw.Title.makeTitle( 2, ping );
-					if ( !title ) {
-						pingHtml = `<p>@${ mw.html.escape( ping ) }:&nbsp;</p>`;
-					} else {
-						const link = mw.html.element( 'a', {
-							href: title.getUrl(),
-							title: title.getPrefixedText(),
-							rel: 'mw:WikiLink'
-						}, ping );
-						pingHtml = `<p>@${ link }:&nbsp;</p>`;
-					}
-					$input.val( pingHtml );
-				}
-				// Create the VE instance for this editor
-				this.ve = new mw.commentsExt.ve.Editor( $input, $input.val() );
-				// FIXME: the cursor is at the beginning of VE instead of end
-				// this.ve.moveCursorToEnd();
-			} else if ( val === true ) {
-				if ( this.ve ) {
-					this.ve.target.getSurface().getView().focus();
-				} else {
-					setTimeout( () => $input.trigger( 'focus' ), 0 );
-				}
-			} else {
+			if ( !val ) {
 				if ( this.ve ) {
 					// When we're no longer writing a comment, kill the VE instance
 					this.ve.target.destroy();
@@ -265,8 +259,25 @@ module.exports = exports = defineComponent( {
 				} else {
 					$input.val( '' );
 				}
+				this.$data.showPreview = false;
+				this.$data.previewHtml = '';
+				return;
 			}
+
+			const veLoad = this.store.loadVE();
+			if ( this.store.veState === 'loading' ) {
+				$input.prop( 'disabled', true ).addClass( 'oo-ui-texture-pending' );
+			}
+			veLoad.then( () => {
+				if ( !this.unmounted && this.$props.isWritingComment ) {
+					$input.prop( 'disabled', false ).removeClass( 'oo-ui-texture-pending' );
+					this.openInput( $input );
+				}
+			} );
 		}
+	},
+	beforeUnmount() {
+		this.unmounted = true;
 	}
 } );
 </script>

@@ -18,14 +18,14 @@
 					</span>
 					<span v-else>{{ $i18n( 'yappin-post-edit' ).text() }}</span>
 				</cdx-button>
-				<cdx-button v-if="!useVE" @click="previewComment">
+				<cdx-button v-if="useWikitext" @click="previewComment">
 					{{ $i18n( 'yappin-preview-button' ).text() }}
 				</cdx-button>
 				<cdx-button action="destructive" @click="store.isEditing = null">
 					{{ $i18n( 'cancel' ).text() }}
 				</cdx-button>
 			</div>
-			<div v-if="!useVE && showPreview" class="comment-preview">
+			<div v-if="useWikitext && showPreview" class="comment-preview">
 				<strong>{{ $i18n( 'yappin-preview-label' ).text() }}</strong>
 				<div class="comment-preview-content">
 					<span v-if="isLoadingPreview">
@@ -70,16 +70,16 @@ module.exports = exports = defineComponent( {
 			ve: null,
 			showPreview: false,
 			previewHtml: '',
-			isLoadingPreview: false
+			isLoadingPreview: false,
+			unmounted: false
 		};
 	},
 	computed: {
 		useVE() {
-			const commentsConfig = mw.config.get( 'wgYappin' );
-			return commentsConfig.useVisualEditor === true &&
-				typeof mw.commentsExt !== 'undefined' &&
-				typeof mw.commentsExt.ve !== 'undefined' &&
-				mw.commentsExt.ve.Editor.static.isSupported();
+			return this.store.veState === 'ready';
+		},
+		useWikitext() {
+			return this.store.veState === 'failed';
 		}
 	},
 	methods: {
@@ -146,14 +146,27 @@ module.exports = exports = defineComponent( {
 	},
 	mounted() {
 		const $input = $( this.$refs.input );
-
-		if ( this.useVE ) {
-			$input.val( this.$props.comment.html );
-			// Create the VE instance for this editor
-			this.ve = new mw.commentsExt.ve.Editor( $input, this.$props.comment.html );
-		} else {
-			$input.val( this.$props.comment.wikitext );
+		const veLoad = this.store.loadVE();
+		if ( this.store.veState === 'loading' ) {
+			$input.prop( 'disabled', true ).addClass( 'oo-ui-texture-pending' );
 		}
+
+		veLoad.then( () => {
+			if ( this.unmounted ) {
+				return;
+			}
+			$input.prop( 'disabled', false ).removeClass( 'oo-ui-texture-pending' );
+			if ( this.useVE ) {
+				$input.val( this.$props.comment.html );
+				// Create the VE instance for this editor
+				this.ve = new mw.commentsExt.ve.Editor( $input, this.$props.comment.html );
+			} else {
+				$input.val( this.$props.comment.wikitext );
+			}
+		} );
+	},
+	beforeUnmount() {
+		this.unmounted = true;
 	}
 } );
 </script>

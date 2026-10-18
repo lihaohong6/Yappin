@@ -14,6 +14,9 @@ if ( savedSortMethod &&
 	mw.storage.remove( SORT_METHOD_STORAGE_KEY );
 }
 
+const useVisualEditor = mw.config.get( 'wgYappin' ).useVisualEditor === true;
+let veLoad = null;
+
 const store = reactive( {
 	// Whether we're on Special:Comments instead of a normal wiki page
 	isSpecialComments,
@@ -32,9 +35,30 @@ const store = reactive( {
 	singleComment: null,
 	// Whether to filter the comments displayed by a specific user
 	filterByUser: null,
+	// One of 'idle', 'loading', 'ready' or 'failed'. Wikitext mode is used when 'failed'.
+	veState: useVisualEditor ? 'idle' : 'failed',
 	setSortMethod( method ) {
 		store.sortMethod = method;
 		mw.storage.set( SORT_METHOD_STORAGE_KEY, store.sortMethod );
+	},
+	loadVE() {
+		if ( veLoad ) {
+			return veLoad;
+		}
+		if ( !useVisualEditor ) {
+			veLoad = Promise.resolve();
+			return veLoad;
+		}
+		store.veState = 'loading';
+		veLoad = Promise.resolve( mw.loader.using( [
+			OO.ui.isMobile() ? 'ext.yappin.ve.mobile' : 'ext.yappin.ve.desktop',
+			'ext.yappin.ve'
+		] ) ).then( () => {
+			store.veState = mw.commentsExt.ve.Editor.static.isSupported() ? 'ready' : 'failed';
+		}, () => {
+			store.veState = 'failed';
+		} );
+		return veLoad;
 	}
 } );
 
