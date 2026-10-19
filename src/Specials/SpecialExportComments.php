@@ -14,8 +14,13 @@ class SpecialExportComments extends FormSpecialPage {
 	private ActorStore $actorStore;
 
 	public function __construct() {
-		parent::__construct( 'ExportComments', 'yappin-manage' );
+		parent::__construct( 'ExportComments' );
 		$this->actorStore = MediaWikiServices::getInstance()->getActorStore();
+	}
+
+	/** @inheritDoc */
+	public function getRestriction(): string {
+		return 'yappin-manage';
 	}
 
 	protected function getFormFields(): array {
