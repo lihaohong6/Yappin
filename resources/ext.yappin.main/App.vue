@@ -55,8 +55,10 @@ module.exports = exports = defineComponent( {
 		let targetUser = params.get( 'user' );
 		if ( targetUser ) {
 			targetUser = targetUser.trim();
-			this.$data.store.filterByUser =
-				targetUser.charAt( 0 ).toUpperCase() + targetUser.slice( 1 );
+			if ( !targetUser.includes( '>' ) ) {
+				targetUser = targetUser.charAt( 0 ).toUpperCase() + targetUser.slice( 1 );
+			}
+			this.$data.store.filterByUser = targetUser;
 		}
 
 		this.$data.store.isReadOnly = readOnly || pageReadOnly;
