@@ -16,6 +16,7 @@ use MediaWiki\SpecialPage\FormSpecialPage;
 use MediaWiki\Status\Status;
 use MediaWiki\Title\Title;
 use MediaWiki\User\ActorStore;
+use MediaWiki\User\TempUser\TempUserConfig;
 use MediaWiki\User\UserIdentityLookup;
 use MediaWiki\User\UserIdentityValue;
 use MediaWiki\User\UserNameUtils;
@@ -28,6 +29,7 @@ class SpecialImportComments extends FormSpecialPage {
 	private UserIdentityLookup $userLookup;
 	private ActorStore $actorStore;
 	private UserNameUtils $userNameUtils;
+	private TempUserConfig $tempUserConfig;
 
 	public function __construct() {
 		parent::__construct( 'ImportComments' );
@@ -37,6 +39,7 @@ class SpecialImportComments extends FormSpecialPage {
 		$this->userLookup = $services->getUserIdentityLookup();
 		$this->actorStore = $services->getActorStore();
 		$this->userNameUtils = $services->getUserNameUtils();
+		$this->tempUserConfig = $services->getTempUserConfig();
 	}
 
 	/** @inheritDoc */
@@ -261,7 +264,7 @@ class SpecialImportComments extends FormSpecialPage {
 					$actorUser = $this->userLookup->getUserIdentityByName( $username );
 				}
 				if ( $actorUser === null ) {
-					$actorUser = $this->userNameUtils->isIP( $username )
+					$actorUser = $this->userNameUtils->isIP( $username ) && !$this->tempUserConfig->isEnabled()
 						? UserIdentityValue::newAnonymous( $username )
 						: UserIdentityValue::newExternal( $prefix, $username );
 				}
